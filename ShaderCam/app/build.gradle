@@ -30,11 +30,23 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+    buildFeatures {
+        viewBinding true
+    }
 }
 
 dependencies {
     implementation("com.otaliastudios.opengl:egloo:0.6.1")
     api("com.otaliastudios:cameraview:2.7.2")
+
+    def camerax_version = "1.1.0-beta01"
+    implementation "androidx.camera:camera-core:${camerax_version}"
+    implementation("androidx.camera:camera-camera2:${camerax_version}")
+    implementation("androidx.camera:camera-lifecycle:${camerax_version}")
+    implementation("androidx.camera:camera-video:${camerax_version}")
+    implementation("androidx.camera:camera-view:${camerax_version}")
+    implementation("androidx.camera:camera-extensions:${camerax_version}")
+
     implementation("androidx.viewpager2:viewpager2:1.0.0")
     implementation("com.google.android.material:material:1.7.0")
     implementation 'androidx.core:core-ktx:1.7.0'

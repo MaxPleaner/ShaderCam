@@ -19,7 +19,6 @@ class VideoPreviewActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.i("DEBUG", "on video preview activity create")
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_video_preview)
 
@@ -36,7 +35,6 @@ class VideoPreviewActivity : AppCompatActivity() {
             sharingIntent.type = "video/*";
             sharingIntent.putExtra(Intent.EXTRA_SUBJECT, "Hey this is the video subject")
             sharingIntent.putExtra(Intent.EXTRA_TEXT, "Hey this is the video text")
-//            sharingIntent.putExtra(Intent.EXTRA_STREAM,Uri.fromFile(videoResult!!.file))
 
             val photoURI = FileProvider.getUriForFile(
                 baseContext,
@@ -59,9 +57,7 @@ class VideoPreviewActivity : AppCompatActivity() {
         controller.setMediaPlayer(videoView)
         videoView.setMediaController(controller)
 
-//        Log.i("DEBUG", Uri.fromFile(videoResult!!.file).toString())
         videoView.setVideoURI(Uri.fromFile(videoResult!!.file))
-//        videoView.setVideoURI(uri)
 
         videoView.setOnPreparedListener { mp ->
             val lp = videoView.layoutParams
@@ -71,16 +67,6 @@ class VideoPreviewActivity : AppCompatActivity() {
             lp.height = (viewWidth * (videoHeight / videoWidth)).toInt()
             videoView.layoutParams = lp
             videoView.start()
-//            if (result.isSnapshot) {
-//                // Log the real size for debugging reason.
-//                Log.e("VideoPreview", "The video full size is " + videoWidth + "x" + videoHeight)
-//            }
         }
-    }
-
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
-        Log.i("DEBUG", "on video preview activity new intent")
-
     }
 }

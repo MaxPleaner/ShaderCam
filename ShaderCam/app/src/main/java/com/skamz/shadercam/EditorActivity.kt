@@ -30,10 +30,6 @@ class EditorActivity : AppCompatActivity(){
             }
        """.trimIndent()
 
-        lateinit var cameraActivityIntent: Intent
-
-        var customShader: String? = null
-
         fun buildShader(shaderText: String): String {
             return shaderBoiler.replace(shaderContentToken, shaderText)
         }
@@ -44,7 +40,7 @@ class EditorActivity : AppCompatActivity(){
         setContentView(R.layout.activity_editor)
         val cameraLink = findViewById<Button>(R.id.camera_link);
 
-        cameraActivityIntent = Intent(this, CameraActivity::class.java)
+        val cameraActivityIntent = Intent(this, CameraActivity::class.java)
         cameraActivityIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 
         cameraLink.setOnClickListener {

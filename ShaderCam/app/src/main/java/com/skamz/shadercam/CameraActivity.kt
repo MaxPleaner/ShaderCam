@@ -1,31 +1,25 @@
 package com.skamz.shadercam
 
-import android.Manifest
-import android.content.ContentValues
-import android.content.Intent
-import android.graphics.Bitmap
-import android.net.Uri
-import android.os.Build
-import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
-import android.provider.MediaStore.Video
-import android.text.format.Formatter.formatShortFileSize
-import android.util.Log
-import android.util.Log.*
-import android.widget.Button
-import android.widget.ImageButton
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.video.MediaStoreOutputOptions
 //import androidx.camera.core.CameraSelector
 //import androidx.camera.core.ImageCapture
 //import androidx.camera.core.ImageCaptureException
 //import androidx.camera.core.Preview
 //import androidx.camera.lifecycle.ProcessCameraProvider
 //import androidx.camera.video.*
+import android.content.ContentValues
+import android.content.Intent
+import android.graphics.Bitmap
+import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
+import android.provider.MediaStore.Video
+import android.util.Log
+import android.util.Log.*
+import android.widget.Button
+import android.widget.ImageButton
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.content.PermissionChecker
 import com.otaliastudios.cameraview.CameraListener
 import com.otaliastudios.cameraview.CameraView
 import com.otaliastudios.cameraview.PictureResult
@@ -33,15 +27,10 @@ import com.otaliastudios.cameraview.VideoResult
 import com.otaliastudios.cameraview.controls.Mode
 import com.otaliastudios.cameraview.filter.Filter
 import com.otaliastudios.cameraview.filter.SimpleFilter
-import java.io.ByteArrayOutputStream
-import java.io.File
 import com.skamz.shadercam.databinding.ActivityCameraBinding
-import java.math.BigDecimal
-import java.math.RoundingMode
-import java.text.SimpleDateFormat
+import java.io.*
 import java.util.*
 import java.util.concurrent.ExecutorService
-import kotlin.math.roundToLong
 
 
 class CameraActivity : AppCompatActivity() {
@@ -308,15 +297,52 @@ class CameraActivity : AppCompatActivity() {
             }
         }
 
+        fun saveVideo2(videoResult: VideoResult) {
+            val sourceuri = videoResult.file.toURI()
+
+            val sourceFilename: String = sourceuri.path
+            val time = System.currentTimeMillis().toString()
+            val destinationFilename =
+                Environment.getExternalStorageDirectory().path + File.separatorChar + "$time.mp4"
+            var bis: BufferedInputStream? = null
+            var bos: BufferedOutputStream? = null
+            try {
+                bis = BufferedInputStream(FileInputStream(sourceFilename))
+                bos = BufferedOutputStream(FileOutputStream(destinationFilename, false))
+                val buf = ByteArray(1024)
+                bis.read(buf)
+                do {
+                    bos.write(buf)
+                } while (bis.read(buf) !== -1)
+            } catch (e: IOException) {
+                e.printStackTrace()
+            } finally {
+                try {
+                    if (bis != null) bis.close()
+                    if (bos != null) bos.close()
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+            }
+            Log.i("DEBUG", destinationFilename)
+        }
+
         private fun saveVideo(result: VideoResult) {
             val videoFile = result.file
 
             val contentValues = ContentValues()
-            contentValues.put(Video.Media.DISPLAY_NAME, System.currentTimeMillis().toString())
+            contentValues.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis())
+//            contentValues.put(Video.Media.DISPLAY_NAME, System.currentTimeMillis().toString())
             contentValues.put(Video.Media.MIME_TYPE, "video/mp4")
             contentValues.put(Video.Media.DATA, videoFile.absolutePath)
+//            contentValues.put(Video.Media.RELATIVE_PATH, "Movies/ShaderCam")
+
+            val uri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues)
+
+            //            contentValues.put(Video.Media.DATA, Uri.fromFile(videoFile).toString())
+
 //            contentValues.put(Video.Media.DATA, videoFile.readBytes())
-            contentValues.put(Video.Media.RELATIVE_PATH, "Movies/ShaderCam")
+
 
             val codec = result.videoCodec
             val location = result.location
@@ -326,7 +352,12 @@ class CameraActivity : AppCompatActivity() {
             i(TAG, "CODEC $codec")
             i(TAG, "LOCATION: $location")
 
-            val uri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues)
+
+
+//            VideoPreviewActivity.videoResult = result
+            VideoPreviewActivity.uri = uri
+            val intent = Intent(cameraActivity, VideoPreviewActivity::class.java)
+            cameraActivity.startActivity(intent)
             i(TAG, uri?.path!!)
 
 //            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
@@ -367,10 +398,11 @@ class CameraActivity : AppCompatActivity() {
 
         override fun onVideoTaken(result: VideoResult) {
             super.onVideoTaken(result)
-//            VideoPreviewActivity.videoResult = result
-//            val intent = Intent(this@CameraActivity, VideoPreviewActivity::class.java)
-//            startActivity(intent)
-            saveVideo(result)
+            VideoPreviewActivity.videoResult = result
+            val intent = Intent(cameraActivity, VideoPreviewActivity::class.java)
+            cameraActivity.startActivity(intent)
+//            saveVideo(result)
+//            saveVideo2(result)
         }
     }
 

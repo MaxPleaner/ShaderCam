@@ -8,9 +8,22 @@
 
     <Button
         android:id="@+id/editor_link"
-        android:layout_width="150dp"
+        android:layout_width="110dp"
         android:layout_height="40dp"
         android:text="Editor"
+        android:textColor="@android:color/background_dark"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:layout_marginLeft="130dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/shader_editor_link"
+        android:layout_width="110dp"
+        android:layout_height="40dp"
+        android:text="Shaders"
+        android:layout_marginLeft="10dp"
         android:textColor="@android:color/background_dark"
         android:textSize="15sp"
         android:textStyle="bold"

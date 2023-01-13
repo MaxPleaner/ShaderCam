@@ -3,6 +3,7 @@ package com.skamz.shadercam
 import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Color.rgb
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -20,10 +21,14 @@ import com.otaliastudios.cameraview.PictureResult
 import com.otaliastudios.cameraview.VideoResult
 import com.otaliastudios.cameraview.controls.Mode
 import com.otaliastudios.cameraview.filter.Filter
+import com.otaliastudios.cameraview.filter.Filters
 import com.otaliastudios.cameraview.filter.SimpleFilter
+import com.otaliastudios.cameraview.filters.BlackAndWhiteFilter
+import com.otaliastudios.cameraview.filters.DuotoneFilter
+import com.otaliastudios.cameraview.filters.GrainFilter
+import com.otaliastudios.cameraview.filters.PosterizeFilter
 import com.skamz.shadercam.databinding.ActivityCameraBinding
 import java.io.*
-import java.util.concurrent.ExecutorService
 
 
 class CameraActivity : AppCompatActivity() {
@@ -56,11 +61,19 @@ class CameraActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        Log.i("DEBUG", "Camera on  create")
+
         viewBinding = ActivityCameraBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
         findViewById<Button>(R.id.editor_link).setOnClickListener {
             val intent = Intent(this, EditorActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            startActivity(intent)
+        }
+
+        findViewById<Button>(R.id.shader_editor_link).setOnClickListener {
+            val intent = Intent(this, ShaderSelectActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
             startActivity(intent)
         }
@@ -104,6 +117,8 @@ class CameraActivity : AppCompatActivity() {
         camera.setLifecycleOwner(this)
 
         camera.addCameraListener(MyCameraListener(this))
+
+        setShader("foo")
     }
 
     fun buildPhotoPath(): String {
@@ -214,9 +229,19 @@ class CameraActivity : AppCompatActivity() {
         setShader(shaderText)
     }
 
-    fun setShader(shaderText: String) {
-        val filter: Filter = SimpleFilter(shaderText)
+    private fun setShader(shaderText: String) {
+//        val filter: Filter = SimpleFilter(shaderText)
+
+//        Log.i(TAG, shaderText)
+//        val filter = Filters.DUOTONE
+        val filter = Filters.GRAIN.newInstance()
+//        filter.
         camera.filter = filter;
+
+        val filterControl: GrainFilter = camera.filter as GrainFilter
+        filterControl.strength =
+//        duotoneFilter.firstColor = rgb(255, 0, 0)
+//        duotoneFilter.secondColor = rgb(0, 255, 0)
     }
 }
 

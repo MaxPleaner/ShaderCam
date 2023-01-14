@@ -1,10 +1,11 @@
-package com.skamz.shadercam
+package com.skamz.shadercam.activities
 
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
+import com.skamz.shadercam.R
 
 class EditorActivity : AppCompatActivity(){
     companion object {

@@ -1,12 +1,14 @@
-package com.skamz.shadercam
+package com.skamz.shadercam.activities
 
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import com.otaliastudios.cameraview.filter.BaseFilter
+import com.skamz.shadercam.R
+import com.skamz.shadercam.shaders.util.Shaders
 import com.skamz.shadercam.databinding.ActivityShaderSelectBinding
+import com.skamz.shadercam.shaders.util.AbstractShader
 
 
 class ShaderSelectActivity: AppCompatActivity() {
@@ -25,7 +27,8 @@ class ShaderSelectActivity: AppCompatActivity() {
 
         val arrayAdapter: ArrayAdapter<*>
         val shaders = mapOf<String, AbstractShader>(
-            "Bright" to Shaders.Companion.BrightShader(),
+            "Pass Through" to Shaders.noopShader,
+            "Brightness" to Shaders.brightShader,
         )
 
         var mListView = findViewById<ListView>(R.id.list_view)

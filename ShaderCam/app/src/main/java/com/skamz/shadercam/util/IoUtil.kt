@@ -1,9 +1,10 @@
-package com.skamz.shadercam
+package com.skamz.shadercam.util
 
 import android.content.ContentValues
 import android.graphics.Bitmap
 import android.os.Environment
 import android.provider.MediaStore
+import com.skamz.shadercam.activities.CameraActivity
 import java.io.ByteArrayOutputStream
 import java.io.File
 

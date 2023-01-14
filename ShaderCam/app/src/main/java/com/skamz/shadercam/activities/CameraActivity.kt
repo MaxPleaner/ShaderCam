@@ -1,13 +1,10 @@
-package com.skamz.shadercam
+package com.skamz.shadercam.activities
 
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log.*
 import android.view.View
-import android.widget.Button
-import android.widget.ImageButton
-import android.widget.LinearLayout
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.slider.Slider
@@ -16,9 +13,11 @@ import com.otaliastudios.cameraview.CameraView
 import com.otaliastudios.cameraview.PictureResult
 import com.otaliastudios.cameraview.VideoResult
 import com.otaliastudios.cameraview.controls.Mode
-import com.otaliastudios.cameraview.filter.Filters
-import com.otaliastudios.cameraview.filters.BrightnessFilter
+import com.skamz.shadercam.*
 import com.skamz.shadercam.databinding.ActivityCameraBinding
+import com.skamz.shadercam.shaders.util.AbstractShader
+import com.skamz.shadercam.shaders.util.Shaders
+import com.skamz.shadercam.util.IoUtil
 import java.io.*
 
 
@@ -31,7 +30,7 @@ class CameraActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "DEBUG"
-        var shader: AbstractShader = Shaders.Companion.BrightShader()
+        var shader: AbstractShader = Shaders.noopShader
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -118,6 +117,23 @@ class CameraActivity : AppCompatActivity() {
 
     private fun updateShaderParams(paramName: String, num: Float) {
         shader.dataValues[paramName] = num
+        updateShaderText()
+    }
+
+    fun Float.format(digits: Int) = "%.${digits}f".format(this)
+
+    private fun updateShaderText() {
+        val shaderTitle = findViewById<TextView>(R.id.shader_title)
+        var text = "Current shader: ${shader.name}"
+        if (shader.params.count() > 0) {
+            var paramHints = ""
+            shader.params.forEachIndexed { index, shaderParam ->
+                val shaderVal = shader.dataValues[shaderParam.paramName]!!
+                paramHints += "\n  ${index + 1}. ${shaderParam.paramName} (${shaderVal.format(2)})"
+            }
+            text += "\n Params: $paramHints"
+        }
+        shaderTitle.text = text
     }
 
     private fun fit(value: Float, oldMin: Float, oldMax: Float, newMin: Float, newMax: Float): Float {
@@ -134,6 +150,8 @@ class CameraActivity : AppCompatActivity() {
 
         val uiContainer = findViewById<LinearLayout>(R.id.dynamic_ui)
         uiContainer.removeAllViews()
+
+        updateShaderText()
 //
         shader.params.forEach {
             val inflatedView: View = View.inflate(this, R.layout.param_slider, uiContainer)

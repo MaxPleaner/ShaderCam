@@ -1,15 +1,15 @@
-package com.skamz.shadercam
+package com.skamz.shadercam.activities
 
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.MediaController
 import android.widget.VideoView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import com.otaliastudios.cameraview.VideoResult
+import com.skamz.shadercam.R
 
 
 class VideoPreviewActivity : AppCompatActivity() {

@@ -30,7 +30,7 @@
         </provider>
 
         <activity
-            android:name=".CameraActivity"
+            android:name=".activities.CameraActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -44,7 +44,7 @@
         </activity>
 
         <activity
-            android:name=".EditorActivity"
+            android:name=".activities.EditorActivity"
             android:exported="true">
             <meta-data
                 android:name="android.app.lib_name"
@@ -52,7 +52,7 @@
         </activity>
 
         <activity
-            android:name=".ShaderSelectActivity"
+            android:name=".activities.ShaderSelectActivity"
             android:exported="true">
             <meta-data
                 android:name="android.app.lib_name"
@@ -60,7 +60,7 @@
         </activity>
 
         <activity
-            android:name=".VideoPreviewActivity"
+            android:name=".activities.VideoPreviewActivity"
             android:exported="true">
             <meta-data
                 android:name="android.app.lib_name"

@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import com.otaliastudios.cameraview.filter.BaseFilter
 import com.skamz.shadercam.databinding.ActivityShaderSelectBinding
 
 
@@ -23,9 +24,8 @@ class ShaderSelectActivity: AppCompatActivity() {
         setContentView(viewBinding.root)
 
         val arrayAdapter: ArrayAdapter<*>
-        val shaders = mapOf(
-            "Bright" to Shaders.Bright,
-            "Dark" to Shaders.Dark
+        val shaders = mapOf<String, AbstractShader>(
+            "Bright" to Shaders.Companion.BrightShader(),
         )
 
         var mListView = findViewById<ListView>(R.id.list_view)
@@ -39,10 +39,9 @@ class ShaderSelectActivity: AppCompatActivity() {
         mListView.onItemClickListener =
             AdapterView.OnItemClickListener { parent, view, position, id ->
                 val name = mListView.getItemAtPosition(position) as String
-                val shaderText = shaders[name]!!
-                Log.i("DEBUG", shaderText)
-
-                cameraActivityIntent.putExtra("shader", shaderText);
+                val filter = shaders[name]!!
+                CameraActivity.shader = filter
+//                cameraActivityIntent.putExtra("shader", filter.fragmentShader);
                 startActivity(cameraActivityIntent)
             }
 

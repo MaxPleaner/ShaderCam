@@ -1,32 +1,23 @@
 package com.skamz.shadercam
 
-import android.content.ContentValues
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Color.rgb
 import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
-import android.provider.MediaStore.Video
-import android.util.Log
 import android.util.Log.*
+import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.google.android.material.slider.Slider
 import com.otaliastudios.cameraview.CameraListener
 import com.otaliastudios.cameraview.CameraView
 import com.otaliastudios.cameraview.PictureResult
 import com.otaliastudios.cameraview.VideoResult
 import com.otaliastudios.cameraview.controls.Mode
-import com.otaliastudios.cameraview.filter.Filter
 import com.otaliastudios.cameraview.filter.Filters
-import com.otaliastudios.cameraview.filter.SimpleFilter
-import com.otaliastudios.cameraview.filters.BlackAndWhiteFilter
-import com.otaliastudios.cameraview.filters.DuotoneFilter
-import com.otaliastudios.cameraview.filters.GrainFilter
-import com.otaliastudios.cameraview.filters.PosterizeFilter
+import com.otaliastudios.cameraview.filters.BrightnessFilter
 import com.skamz.shadercam.databinding.ActivityCameraBinding
 import java.io.*
 
@@ -40,29 +31,11 @@ class CameraActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "DEBUG"
-    }
-
-    fun saveImage(bmp: Bitmap, path: String, activity: CameraActivity) {
-        ByteArrayOutputStream().apply {
-            bmp.compress(Bitmap.CompressFormat.JPEG, 100, this)
-        }
-        val imageFile = File(path)
-        val contentResolver = ContentValues().apply {
-            put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis())
-            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-            put(MediaStore.Images.Media.DATA, imageFile.absolutePath)
-        }
-
-        activity.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentResolver).apply {
-            bmp.compress(Bitmap.CompressFormat.JPEG, 100, activity.contentResolver.openOutputStream(this!!))
-        }
+        var shader: AbstractShader = Shaders.Companion.BrightShader()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        Log.i("DEBUG", "Camera on  create")
-
         viewBinding = ActivityCameraBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
@@ -93,7 +66,7 @@ class CameraActivity : AppCompatActivity() {
                     camera.stopVideo()
                 } else {
                     captureBtn.setBackgroundColor(ContextCompat.getColor(this, R.color.red))
-                    val path = buildVideoPath()
+                    val path = IoUtil.buildVideoPath(this)
                     camera.takeVideoSnapshot(File(path))
                 }
             }
@@ -115,98 +88,19 @@ class CameraActivity : AppCompatActivity() {
 
         camera = findViewById(R.id.camera_view)
         camera.setLifecycleOwner(this)
-
         camera.addCameraListener(MyCameraListener(this))
 
-        setShader("foo")
-    }
-
-    fun buildPhotoPath(): String {
-        val filename = System.currentTimeMillis().toString()
-        return "${getExternalFilesDir(Environment.DIRECTORY_PICTURES)}/$filename.jpg"
-    }
-
-    private fun buildVideoPath(): String {
-        val filename = System.currentTimeMillis().toString()
-        return "${getExternalFilesDir(Environment.DIRECTORY_MOVIES)}/$filename.mp4"
+        setShader(shader)
     }
 
     class MyCameraListener(parent: CameraActivity) : CameraListener() {
         var cameraActivity: CameraActivity = parent
-        val contentResolver = cameraActivity.contentResolver
         override fun onPictureTaken(result: PictureResult) {
             result.toBitmap { bmp ->
-                val path = cameraActivity.buildPhotoPath()
+                val path = IoUtil.buildPhotoPath(cameraActivity)
                 i(TAG, path)
-                cameraActivity.saveImage(bmp!!, path, cameraActivity)
+                IoUtil.saveImage(bmp!!, path, cameraActivity)
             }
-        }
-
-        // Results in corrupt video for some reason. Very frustrating.
-        private fun saveVideo(result: VideoResult) {
-            val videoFile = result.file
-
-            val contentValues = ContentValues()
-            contentValues.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis())
-//            contentValues.put(Video.Media.DISPLAY_NAME, System.currentTimeMillis().toString())
-            contentValues.put(Video.Media.MIME_TYPE, "video/mp4")
-            contentValues.put(Video.Media.DATA, videoFile.absolutePath)
-//            contentValues.put(Video.Media.RELATIVE_PATH, "Movies/ShaderCam")
-
-            val uri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues)
-
-            //            contentValues.put(Video.Media.DATA, Uri.fromFile(videoFile).toString())
-
-//            contentValues.put(Video.Media.DATA, videoFile.readBytes())
-
-            val codec = result.videoCodec
-            val location = result.location
-            val sizeKb = result.file.length() / 1024
-            i(TAG, "$sizeKb KB in video file")
-            i(TAG, videoFile.absolutePath)
-            i(TAG, "CODEC $codec")
-            i(TAG, "LOCATION: $location")
-
-//            VideoPreviewActivity.videoResult = result
-            VideoPreviewActivity.uri = uri
-            val intent = Intent(cameraActivity, VideoPreviewActivity::class.java)
-            cameraActivity.startActivity(intent)
-            i(TAG, uri?.path!!)
-
-//            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
-//
-//            }
-
-//            val mediaStoreOutputOptions = MediaStoreOutputOptions
-//                .Builder(contentResolver, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)s
-//                .setContentValues(contentValues)
-//                .build()
-
-//            contentResolver.insert(MediaStore.Files.getContentUri("external"), contentValues)
-//            contentResolver.insert(Video.Media.EXTERNAL_CONTENT_URI, contentValues)
-
-
-//        val contentValues = ContentValues().apply {
-//            put(MediaStore.MediaColumns.DISPLAY_NAME, name)
-//            put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
-//            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
-//                put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/CameraX-Video")
-//            }
-//        }
-//
-
-
-            //        recording = videoCapture.output
-//            .prepareRecording(this, mediaStoreOutputOptions)
-//            .apply {
-//                if (PermissionChecker.checkSelfPermission(this@CameraActivity,
-//                        Manifest.permission.RECORD_AUDIO) ==
-//                    PermissionChecker.PERMISSION_GRANTED)
-//                {
-//                    withAudioEnabled()
-//                }
-//            }
-//            .start(ContextCompat.getMainExecutor(this)) { recordEvent ->
         }
 
         override fun onVideoTaken(result: VideoResult) {
@@ -214,34 +108,45 @@ class CameraActivity : AppCompatActivity() {
             VideoPreviewActivity.videoResult = result
             val intent = Intent(cameraActivity, VideoPreviewActivity::class.java)
             cameraActivity.startActivity(intent)
-//            saveVideo(result)
         }
     }
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        val newShaderText = intent?.extras?.getString("shader")
-        if (newShaderText != null) {
-            shaderText = newShaderText
-        } else {
-            intent?.putExtra("shader", shaderText)
-        }
-        setShader(shaderText)
+        setShader(shader)
     }
 
-    private fun setShader(shaderText: String) {
-//        val filter: Filter = SimpleFilter(shaderText)
+    private fun updateShaderParams(paramName: String, num: Float) {
+        shader.dataValues[paramName] = num
+    }
 
-//        Log.i(TAG, shaderText)
-//        val filter = Filters.DUOTONE
-        val filter = Filters.GRAIN.newInstance()
-//        filter.
-        camera.filter = filter;
+    private fun fit(value: Float, oldMin: Float, oldMax: Float, newMin: Float, newMax: Float): Float {
+        val input_range: Float = oldMax - oldMin
+        val output_range: Float = newMax - newMin
 
-        val filterControl: GrainFilter = camera.filter as GrainFilter
-        filterControl.strength =
-//        duotoneFilter.firstColor = rgb(255, 0, 0)
-//        duotoneFilter.secondColor = rgb(0, 255, 0)
+        return (value - oldMin) * output_range / input_range + newMin
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    private fun setShader(shader: AbstractShader) {
+//        camera.filter = Filters.BRIGHTNESS.newInstance()
+        camera.filter = shader;
+
+        val uiContainer = findViewById<LinearLayout>(R.id.dynamic_ui)
+        uiContainer.removeAllViews()
+//
+        shader.params.forEach {
+            val inflatedView: View = View.inflate(this, R.layout.param_slider, uiContainer)
+            val slider = inflatedView.findViewById<Slider>(R.id.slider)
+            val default01 = fit(it.default, it.min, it.max, 0.0f, 1.0f)
+            slider.value = default01
+//
+            slider.addOnChangeListener { _, value, _ ->
+//                val brightFilter: BrightnessFilter = camera.filter as BrightnessFilter
+//                brightFilter.brightness = value * 5
+                val remappedVal = fit(value, 0.0f,1.0f, it.min, it.max)
+                updateShaderParams(it.paramName, remappedVal)
+            }
+        }
     }
 }
-

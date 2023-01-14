@@ -30,6 +30,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <LinearLayout
+        android:id="@+id/dynamic_ui"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:translationZ="1dp"
+        android:orientation="vertical"
+        android:layout_marginBottom="60dp">
+    </LinearLayout>
+
     <ImageButton
         android:id="@+id/camera_switch_front_back"
         android:background="#ffffff"
@@ -84,7 +95,7 @@
         app:cameraMode="picture"
         app:cameraPlaySounds="false"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"></com.otaliastudios.cameraview.CameraView>
-
+        app:layout_constraintTop_toTopOf="parent">
+    </com.otaliastudios.cameraview.CameraView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

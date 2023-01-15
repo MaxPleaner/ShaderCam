@@ -36,6 +36,9 @@ class CameraActivity : AppCompatActivity() {
         private const val TAG = "DEBUG"
         var shaderAttributes: ShaderAttributes = NoopShader
             set(value) {
+                // Due to BaseFilter (and therefore GenericShader) internally using
+                // .newInstance() while capturing photo/video, we cannot pass arguments to the
+                // constructor. So, it is instead configured using the `shaderAttributes` static property.
                 GenericShader.shaderAttributes = value
                 shader = GenericShader()
                 field = value
@@ -159,25 +162,20 @@ class CameraActivity : AppCompatActivity() {
 
     @OptIn(ExperimentalStdlibApi::class)
     private fun setShader(shader: GenericShader) {
-//        camera.filter = Filters.BRIGHTNESS.newInstance()
-        shader.forceInitialize()
-
         camera.filter = shader;
 
         val uiContainer = findViewById<LinearLayout>(R.id.dynamic_ui)
         uiContainer.removeAllViews()
 
         updateShaderText()
-//
+
         shader.params.forEach {
             val inflatedView: View = View.inflate(this, R.layout.param_slider, uiContainer)
             val slider = inflatedView.findViewById<Slider>(R.id.slider)
             val default01 = fit(it.default, it.min, it.max, 0.0f, 1.0f)
             slider.value = default01
-//
+
             slider.addOnChangeListener { _, value, _ ->
-//                val brightFilter: BrightnessFilter = camera.filter as BrightnessFilter
-//                brightFilter.brightness = value * 5
                 val remappedVal = fit(value, 0.0f,1.0f, it.min, it.max)
                 updateShaderParams(it.paramName, remappedVal)
             }

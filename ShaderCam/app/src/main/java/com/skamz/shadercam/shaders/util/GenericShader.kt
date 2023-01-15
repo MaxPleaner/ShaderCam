@@ -13,7 +13,6 @@ class GenericShader() : BaseFilterPatch() {
     var dataValues: MutableMap<String, Float> = mutableMapOf()
     var dataLocations: MutableMap<String, Int> = mutableMapOf()
 
-    var initialized: Boolean = false;
     var name: String = shaderAttributes.name
     var shaderMainText: String = shaderAttributes.shaderMainText
     var params: MutableList<ShaderParam> = shaderAttributes.params
@@ -53,7 +52,6 @@ class GenericShader() : BaseFilterPatch() {
 
     override fun onCopy(): GenericShader {
         return try {
-//            GenericShader(ShaderAttributes(name, shaderMainText, params))
             javaClass.newInstance()
         } catch (e: IllegalAccessException) {
             throw RuntimeException("Filters should have a public no-arguments constructor.", e)
@@ -62,20 +60,13 @@ class GenericShader() : BaseFilterPatch() {
         }
     }
 
-    fun forceInitialize() {
-        if (initialized) { return }
+    override fun onCreate(programHandle: Int) {
+        super.onCreate(programHandle)
 
         name = shaderAttributes.name
         shaderMainText = shaderAttributes.shaderMainText
         params = shaderAttributes.params
 
-        initialized = true
-    }
-
-    override fun onCreate(programHandle: Int) {
-        super.onCreate(programHandle)
-
-        forceInitialize()
         params.forEach {
             dataLocations[it.paramName] = GLES20.glGetUniformLocation(programHandle, it.paramName)
             if (dataValues[it.paramName] == null) {

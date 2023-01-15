@@ -1,8 +1,10 @@
 package com.skamz.shadercam.activities
 
 import android.content.Intent
-import android.content.SharedPreferences.Editor
+import android.opengl.GLES20
+import android.opengl.GLES20.*
 import android.os.Bundle
+import android.util.Log
 import android.util.Log.*
 import android.view.View
 import android.widget.*
@@ -16,14 +18,12 @@ import com.otaliastudios.cameraview.VideoResult
 import com.otaliastudios.cameraview.controls.Mode
 import com.skamz.shadercam.*
 import com.skamz.shadercam.databinding.ActivityCameraBinding
-import com.skamz.shadercam.shaders.camera_view_defaults.BrightShader
-import com.skamz.shadercam.shaders.camera_view_defaults.NoopShader
-import com.skamz.shadercam.shaders.util.AbstractShader
 import com.skamz.shadercam.shaders.util.GenericShader
 import com.skamz.shadercam.shaders.util.ShaderAttributes
-import com.skamz.shadercam.shaders.util.Shaders
 import com.skamz.shadercam.util.IoUtil
 import java.io.*
+import java.nio.CharBuffer
+import java.nio.IntBuffer
 
 
 class CameraActivity : AppCompatActivity() {
@@ -34,7 +34,7 @@ class CameraActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "DEBUG"
-        var shaderAttributes: ShaderAttributes = NoopShader
+        var shaderAttributes: ShaderAttributes = GenericShader.shaderAttributes
             set(value) {
                 // Due to BaseFilter (and therefore GenericShader) internally using
                 // .newInstance() while capturing photo/video, we cannot pass arguments to the
@@ -160,8 +160,30 @@ class CameraActivity : AppCompatActivity() {
         return (value - oldMin) * output_range / input_range + newMin
     }
 
+    fun validateShader(shader: GenericShader): Boolean {
+        // Compile Shader
+        GLES20.glShaderSource(GLES20.GL_FRAGMENT_SHADER, shader.fragmentShader)
+        GLES20.glCompileShader(GLES20.GL_FRAGMENT_SHADER)
+        // Check Shader
+        val result: IntBuffer = IntBuffer.allocate(1)
+        val infoLogLength: IntBuffer = IntBuffer.allocate(1);
+        glGetShaderiv(GLES20.GL_FRAGMENT_SHADER, GL_COMPILE_STATUS, result);
+        glGetShaderiv(GLES20.GL_FRAGMENT_SHADER, GL_INFO_LOG_LENGTH, infoLogLength);
+        // Do we have an error message?
+        val logLength = infoLogLength.get()
+        Log.i(TAG, "LOG LENGTH: ${result.get().toString()}")
+        if (logLength > 0) {
+            val errMsg = glGetShaderInfoLog(GLES20.GL_FRAGMENT_SHADER);
+            Log.i(TAG, errMsg)
+            return false
+        }
+        return true
+    }
+
     @OptIn(ExperimentalStdlibApi::class)
     private fun setShader(shader: GenericShader) {
+//        if (!validateShader(shader)) { Log.i(TAG, "THERE WAS AN ERROR"); return }
+        Log.i(TAG, "NO ERROR")
         camera.filter = shader;
 
         val uiContainer = findViewById<LinearLayout>(R.id.dynamic_ui)

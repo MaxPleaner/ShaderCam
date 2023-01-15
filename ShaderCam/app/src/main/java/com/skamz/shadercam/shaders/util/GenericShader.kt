@@ -18,7 +18,7 @@ class GenericShader() : BaseFilterPatch() {
     var params: MutableList<ShaderParam> = shaderAttributes.params
 
     companion object {
-        var shaderAttributes: ShaderAttributes = BrightShader
+        var shaderAttributes: ShaderAttributes = NoopShader
     }
 
     override fun getFragmentShader(): String {

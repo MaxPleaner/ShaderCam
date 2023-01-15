@@ -45,7 +45,6 @@ class ShaderSelectActivity: AppCompatActivity() {
                 val name = mListView.getItemAtPosition(position) as String
                 val filter = shaders[name]!!
                 CameraActivity.shaderAttributes = filter
-//                cameraActivityIntent.putExtra("shader", filter.fragmentShader);
                 startActivity(cameraActivityIntent)
             }
 

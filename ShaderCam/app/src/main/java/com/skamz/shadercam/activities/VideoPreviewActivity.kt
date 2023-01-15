@@ -23,10 +23,10 @@ class VideoPreviewActivity : AppCompatActivity() {
         setContentView(R.layout.activity_video_preview)
 
         val cameraLink = findViewById<Button>(R.id.camera_link);
-        EditorActivity.cameraActivityIntent = Intent(this, CameraActivity::class.java)
-        EditorActivity.cameraActivityIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        val cameraActivityIntent = Intent(this, CameraActivity::class.java)
+        cameraActivityIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         cameraLink.setOnClickListener {
-            startActivity(EditorActivity.cameraActivityIntent)
+            startActivity(cameraActivityIntent)
         }
 
         val saveLink = findViewById<Button>(R.id.save_link)

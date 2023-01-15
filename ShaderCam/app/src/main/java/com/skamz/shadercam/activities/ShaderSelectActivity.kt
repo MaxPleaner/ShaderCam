@@ -9,6 +9,7 @@ import com.skamz.shadercam.R
 import com.skamz.shadercam.shaders.util.Shaders
 import com.skamz.shadercam.databinding.ActivityShaderSelectBinding
 import com.skamz.shadercam.shaders.util.AbstractShader
+import com.skamz.shadercam.shaders.util.ShaderAttributes
 
 
 class ShaderSelectActivity: AppCompatActivity() {
@@ -26,9 +27,9 @@ class ShaderSelectActivity: AppCompatActivity() {
         setContentView(viewBinding.root)
 
         val arrayAdapter: ArrayAdapter<*>
-        val shaders = mapOf<String, AbstractShader>(
+        val shaders = mapOf<String, ShaderAttributes>(
             "Pass Through" to Shaders.noopShader,
-            "Brightness" to Shaders.brightShader,
+            "Brightness Adjust" to Shaders.brightShader,
         )
 
         var mListView = findViewById<ListView>(R.id.list_view)
@@ -43,7 +44,7 @@ class ShaderSelectActivity: AppCompatActivity() {
             AdapterView.OnItemClickListener { parent, view, position, id ->
                 val name = mListView.getItemAtPosition(position) as String
                 val filter = shaders[name]!!
-                CameraActivity.shader = filter
+                CameraActivity.shaderAttributes = filter
 //                cameraActivityIntent.putExtra("shader", filter.fragmentShader);
                 startActivity(cameraActivityIntent)
             }

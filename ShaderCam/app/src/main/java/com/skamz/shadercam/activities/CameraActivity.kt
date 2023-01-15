@@ -1,6 +1,7 @@
 package com.skamz.shadercam.activities
 
 import android.content.Intent
+import android.content.SharedPreferences.Editor
 import android.os.Bundle
 import android.util.Log.*
 import android.view.View
@@ -15,14 +16,16 @@ import com.otaliastudios.cameraview.VideoResult
 import com.otaliastudios.cameraview.controls.Mode
 import com.skamz.shadercam.*
 import com.skamz.shadercam.databinding.ActivityCameraBinding
+import com.skamz.shadercam.shaders.camera_view_defaults.NoopShader
 import com.skamz.shadercam.shaders.util.AbstractShader
+import com.skamz.shadercam.shaders.util.GenericShader
+import com.skamz.shadercam.shaders.util.ShaderAttributes
 import com.skamz.shadercam.shaders.util.Shaders
 import com.skamz.shadercam.util.IoUtil
 import java.io.*
 
 
 class CameraActivity : AppCompatActivity() {
-    var shaderText:String = EditorActivity.buildShader(EditorActivity.defaultShaderText);
     lateinit var camera: CameraView;
     var mode:Mode = Mode.PICTURE
 
@@ -30,7 +33,14 @@ class CameraActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "DEBUG"
-        var shader: AbstractShader = Shaders.noopShader
+        var shaderAttributes: ShaderAttributes = NoopShader
+            set(value) {
+                GenericShader.shaderAttributes = value
+                shader = GenericShader()
+                field = value
+            }
+
+        var shader: GenericShader = GenericShader()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -128,7 +138,10 @@ class CameraActivity : AppCompatActivity() {
         if (shader.params.count() > 0) {
             var paramHints = ""
             shader.params.forEachIndexed { index, shaderParam ->
-                val shaderVal = shader.dataValues[shaderParam.paramName]!!
+                var shaderVal = shader.dataValues[shaderParam.paramName]
+                if (shaderVal == null) {
+                    shaderVal = shaderParam.default
+                }
                 paramHints += "\n  ${index + 1}. ${shaderParam.paramName} (${shaderVal.format(2)})"
             }
             text += "\n Params: $paramHints"
@@ -144,8 +157,10 @@ class CameraActivity : AppCompatActivity() {
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    private fun setShader(shader: AbstractShader) {
+    private fun setShader(shader: GenericShader) {
 //        camera.filter = Filters.BRIGHTNESS.newInstance()
+        shader.forceInitialize()
+
         camera.filter = shader;
 
         val uiContainer = findViewById<LinearLayout>(R.id.dynamic_ui)

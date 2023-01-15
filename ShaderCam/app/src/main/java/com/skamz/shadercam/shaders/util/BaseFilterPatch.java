@@ -14,6 +14,15 @@ import com.otaliastudios.opengl.draw.GlRect;
 import com.otaliastudios.opengl.program.GlTextureProgram;
 
 /**
+ * ---------------------------------------------------------------------------
+ * MAX'S NOTE: THIS IS THE SAME AS THE ORIGINAL BaseFilter BUT ALLOWS `copy` TO BE OVERRIDDEN.
+ * THIS IS NECESSARY BECAUSE THE METHOD IS CALLED DURING THE PHOTO/VIDEO CAPTURE PROCESS.
+ * AbstractShader USES A MODIFIED APPROACH TO SET UNIFORM PROPERTIES AND NEEDS TO BE ABLE TO
+ * OVERRIDE `copy` ACCORDINGLY.
+ * ---------------------------------------------------------------------------
+ */
+
+/**
  * A base implementation of {@link Filter} that just leaves the fragment shader to subclasses.
  * See {@link NoFilter} for a non-abstract implementation.
  *

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activities.CameraActivity">
+
+    <Button
+        android:id="@+id/editor_link"
+        android:layout_width="110dp"
+        android:layout_height="40dp"
+        android:text="Editor"
+        android:textColor="@android:color/background_dark"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:layout_marginLeft="130dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/shader_editor_link"
+        android:layout_width="110dp"
+        android:layout_height="40dp"
+        android:text="Shaders"
+        android:layout_marginLeft="10dp"
+        android:textColor="@android:color/background_dark"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/shader_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:layout_marginLeft="30dp"
+        android:background="@color/black"
+        android:textColor="@color/white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text=""
+        android:translationZ="1dp"></TextView>
+
+    <LinearLayout
+        android:id="@+id/dynamic_ui"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:translationZ="1dp"
+        android:orientation="vertical"
+        android:layout_marginBottom="60dp">
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/camera_switch_front_back"
+        android:background="#ffffff"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:padding="0dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginBottom="5dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/camera_switch_front_back"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+    </ImageButton>
+
+    <ImageButton
+        android:id="@+id/switch_photo_video"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="5dp"
+        android:background="#ffffff"
+        android:padding="0dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/video_mode_icon"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/camera_switch_front_back"></ImageButton>
+
+    <ImageButton
+        android:id="@+id/camera_capture_btn"
+        android:background="#ffffff"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginBottom="10dp"
+        android:padding="0dp"
+        android:scaleType="fitCenter"
+        android:translationZ="1dp"
+        android:src="@drawable/camera_take_photo"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/camera_switch_front_back">
+
+    </ImageButton>
+
+    <com.otaliastudios.cameraview.CameraView
+        android:id="@+id/camera_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="50dp"
+        android:keepScreenOn="true"
+        app:cameraGesturePinch="zoom"
+        app:cameraGestureTap="autoFocus"
+        app:cameraMode="picture"
+        app:cameraPlaySounds="false"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+    </com.otaliastudios.cameraview.CameraView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

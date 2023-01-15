@@ -16,6 +16,7 @@ import com.otaliastudios.cameraview.VideoResult
 import com.otaliastudios.cameraview.controls.Mode
 import com.skamz.shadercam.*
 import com.skamz.shadercam.databinding.ActivityCameraBinding
+import com.skamz.shadercam.shaders.camera_view_defaults.BrightShader
 import com.skamz.shadercam.shaders.camera_view_defaults.NoopShader
 import com.skamz.shadercam.shaders.util.AbstractShader
 import com.skamz.shadercam.shaders.util.GenericShader

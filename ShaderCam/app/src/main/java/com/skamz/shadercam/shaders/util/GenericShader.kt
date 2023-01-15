@@ -2,7 +2,9 @@ package com.skamz.shadercam.shaders.util
 
 import android.opengl.GLES20
 import android.os.Bundle
+import android.util.Log
 import com.otaliastudios.opengl.core.Egloo
+import com.skamz.shadercam.shaders.camera_view_defaults.BrightShader
 import com.skamz.shadercam.shaders.camera_view_defaults.NoopShader
 
 
@@ -17,7 +19,7 @@ class GenericShader() : BaseFilterPatch() {
     var params: MutableList<ShaderParam> = shaderAttributes.params
 
     companion object {
-        var shaderAttributes: ShaderAttributes = NoopShader
+        var shaderAttributes: ShaderAttributes = BrightShader
     }
 
     override fun getFragmentShader(): String {
@@ -45,6 +47,7 @@ class GenericShader() : BaseFilterPatch() {
             copy.setSize(size.width, size.height)
         }
         copy.dataValues = this.dataValues
+        Log.i("DEBUG", copy.dataValues["brightness"]!!.toString())
         shaderAttributes = ShaderAttributes(name, shaderMainText, params)
         return copy
     }
@@ -76,7 +79,9 @@ class GenericShader() : BaseFilterPatch() {
         forceInitialize()
         params.forEach {
             dataLocations[it.paramName] = GLES20.glGetUniformLocation(programHandle, it.paramName)
-            dataValues[it.paramName] = it.default
+            if (dataValues[it.paramName] == null) {
+                dataValues[it.paramName] = it.default
+            }
             Egloo.checkGlProgramLocation(dataLocations[it.paramName]!!, it.paramName)
         }
     }

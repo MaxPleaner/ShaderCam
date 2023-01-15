@@ -47,7 +47,6 @@ class GenericShader() : BaseFilterPatch() {
             copy.setSize(size.width, size.height)
         }
         copy.dataValues = this.dataValues
-        Log.i("DEBUG", copy.dataValues["brightness"]!!.toString())
         shaderAttributes = ShaderAttributes(name, shaderMainText, params)
         return copy
     }

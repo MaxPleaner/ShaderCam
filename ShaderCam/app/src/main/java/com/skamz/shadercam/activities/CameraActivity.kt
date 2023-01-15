@@ -1,11 +1,13 @@
 package com.skamz.shadercam.activities
 
 import android.content.Intent
+import android.graphics.SurfaceTexture
 import android.opengl.GLES20
 import android.opengl.GLES20.*
 import android.os.Bundle
 import android.util.Log
 import android.util.Log.*
+import android.view.SurfaceView
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -16,8 +18,13 @@ import com.otaliastudios.cameraview.CameraView
 import com.otaliastudios.cameraview.PictureResult
 import com.otaliastudios.cameraview.VideoResult
 import com.otaliastudios.cameraview.controls.Mode
+import com.otaliastudios.opengl.core.EglCore
+import com.otaliastudios.opengl.program.GlShader
+import com.otaliastudios.opengl.surface.EglWindowSurface
+import com.otaliastudios.opengl.texture.GlTexture
 import com.skamz.shadercam.*
 import com.skamz.shadercam.databinding.ActivityCameraBinding
+import com.skamz.shadercam.shaders.camera_view_defaults.NoopShader
 import com.skamz.shadercam.shaders.util.GenericShader
 import com.skamz.shadercam.shaders.util.ShaderAttributes
 import com.skamz.shadercam.util.IoUtil
@@ -45,6 +52,9 @@ class CameraActivity : AppCompatActivity() {
             }
 
         var shader: GenericShader = GenericShader()
+
+        var shaderHasError: Boolean = false
+        var shaderErrorMsg: String? = null
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -136,9 +146,9 @@ class CameraActivity : AppCompatActivity() {
 
     fun Float.format(digits: Int) = "%.${digits}f".format(this)
 
-    private fun updateShaderText() {
+    private fun updateShaderText(nameOverride: String? = null) {
         val shaderTitle = findViewById<TextView>(R.id.shader_title)
-        var text = "Current shader: ${shader.name}"
+        var text = "Current shader: ${nameOverride ?: shader.name}"
         if (shader.params.count() > 0) {
             var paramHints = ""
             shader.params.forEachIndexed { index, shaderParam ->
@@ -150,6 +160,9 @@ class CameraActivity : AppCompatActivity() {
             }
             text += "\n Params: $paramHints"
         }
+        if (shaderHasError) {
+            text += "\n SHADER HAS ERROR\n\n $shaderErrorMsg"
+        }
         shaderTitle.text = text
     }
 
@@ -160,30 +173,49 @@ class CameraActivity : AppCompatActivity() {
         return (value - oldMin) * output_range / input_range + newMin
     }
 
-    fun validateShader(shader: GenericShader): Boolean {
-        // Compile Shader
-        GLES20.glShaderSource(GLES20.GL_FRAGMENT_SHADER, shader.fragmentShader)
-        GLES20.glCompileShader(GLES20.GL_FRAGMENT_SHADER)
-        // Check Shader
-        val result: IntBuffer = IntBuffer.allocate(1)
-        val infoLogLength: IntBuffer = IntBuffer.allocate(1);
-        glGetShaderiv(GLES20.GL_FRAGMENT_SHADER, GL_COMPILE_STATUS, result);
-        glGetShaderiv(GLES20.GL_FRAGMENT_SHADER, GL_INFO_LOG_LENGTH, infoLogLength);
-        // Do we have an error message?
-        val logLength = infoLogLength.get()
-        Log.i(TAG, "LOG LENGTH: ${result.get().toString()}")
-        if (logLength > 0) {
-            val errMsg = glGetShaderInfoLog(GLES20.GL_FRAGMENT_SHADER);
-            Log.i(TAG, errMsg)
-            return false
+    // Returns null if shader is valid. Otherwise, returns error message
+    fun validateShader(shader: GenericShader): String? {
+        val core = EglCore()
+        val texture = GlTexture()
+        val surfaceTexture = SurfaceTexture(texture.id)
+        val window = EglWindowSurface(core, surfaceTexture)
+        window.makeCurrent()
+
+        try {
+            GlShader(GL_FRAGMENT_SHADER, shader.fragmentShader)
+        } catch (e: java.lang.RuntimeException) {
+            return e.message
+        } finally {
+            core.release()
         }
-        return true
+        return null
+    }
+
+    private fun useFallbackShader() {
+        GenericShader.shaderAttributes = NoopShader
+        camera.filter = GenericShader()
+    }
+
+    private fun handleShaderError (error: String, shaderName: String) {
+        useFallbackShader()
+        val uiContainer = findViewById<LinearLayout>(R.id.dynamic_ui)
+        uiContainer.removeAllViews()
+        shaderHasError = true
+        shaderErrorMsg = error
+        updateShaderText(shader.name)
     }
 
     @OptIn(ExperimentalStdlibApi::class)
     private fun setShader(shader: GenericShader) {
-//        if (!validateShader(shader)) { Log.i(TAG, "THERE WAS AN ERROR"); return }
-        Log.i(TAG, "NO ERROR")
+        val error = validateShader(shader)
+        if (error != null) {
+            handleShaderError(error, shader.name)
+            return
+        }
+
+        shaderHasError = false
+        shaderErrorMsg = null
+
         camera.filter = shader;
 
         val uiContainer = findViewById<LinearLayout>(R.id.dynamic_ui)

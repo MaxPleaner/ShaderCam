@@ -2,7 +2,9 @@ package com.skamz.shadercam.shaders.util
 
 import android.opengl.GLES20
 import android.os.Bundle
+import android.util.Log
 import com.otaliastudios.opengl.core.Egloo
+import com.skamz.shadercam.shaders.camera_view_defaults.BrightShader
 import com.skamz.shadercam.shaders.camera_view_defaults.NoopShader
 
 
@@ -11,13 +13,12 @@ class GenericShader() : BaseFilterPatch() {
     var dataValues: MutableMap<String, Float> = mutableMapOf()
     var dataLocations: MutableMap<String, Int> = mutableMapOf()
 
-    var initialized: Boolean = false;
     var name: String = shaderAttributes.name
     var shaderMainText: String = shaderAttributes.shaderMainText
     var params: MutableList<ShaderParam> = shaderAttributes.params
 
     companion object {
-        var shaderAttributes: ShaderAttributes = NoopShader
+        var shaderAttributes: ShaderAttributes = BrightShader
     }
 
     override fun getFragmentShader(): String {
@@ -51,7 +52,6 @@ class GenericShader() : BaseFilterPatch() {
 
     override fun onCopy(): GenericShader {
         return try {
-//            GenericShader(ShaderAttributes(name, shaderMainText, params))
             javaClass.newInstance()
         } catch (e: IllegalAccessException) {
             throw RuntimeException("Filters should have a public no-arguments constructor.", e)
@@ -60,23 +60,18 @@ class GenericShader() : BaseFilterPatch() {
         }
     }
 
-    fun forceInitialize() {
-        if (initialized) { return }
+    override fun onCreate(programHandle: Int) {
+        super.onCreate(programHandle)
 
         name = shaderAttributes.name
         shaderMainText = shaderAttributes.shaderMainText
         params = shaderAttributes.params
 
-        initialized = true
-    }
-
-    override fun onCreate(programHandle: Int) {
-        super.onCreate(programHandle)
-
-        forceInitialize()
         params.forEach {
             dataLocations[it.paramName] = GLES20.glGetUniformLocation(programHandle, it.paramName)
-            dataValues[it.paramName] = it.default
+            if (dataValues[it.paramName] == null) {
+                dataValues[it.paramName] = it.default
+            }
             Egloo.checkGlProgramLocation(dataLocations[it.paramName]!!, it.paramName)
         }
     }

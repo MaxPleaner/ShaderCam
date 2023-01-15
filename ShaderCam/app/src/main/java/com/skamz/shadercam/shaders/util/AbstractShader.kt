@@ -18,10 +18,7 @@ class AbstractShader(shaderAttributes: ShaderAttributes) : BaseFilterPatch() {
     }
 
     companion object {
-        val defaultShaderMainText: String = """
-          vec4 color = texture2D(sTexture, vTextureCoord);
-          gl_FragColor = color;
-        """.trimIndent()
+
     }
 
     override fun getFragmentShader(): String {

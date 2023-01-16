@@ -32,7 +32,7 @@ import java.io.*
 import java.nio.CharBuffer
 import java.nio.IntBuffer
 
-
+//test
 class CameraActivity : AppCompatActivity() {
     lateinit var camera: CameraView;
     var mode:Mode = Mode.PICTURE

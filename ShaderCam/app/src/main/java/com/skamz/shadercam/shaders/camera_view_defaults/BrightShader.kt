@@ -13,7 +13,7 @@ val params: MutableList<ShaderParam> = mutableListOf(
 )
 
 val BrightShader = ShaderAttributes(
-    "Brightness Adjust",
+    "(Template) Brightness Adjust",
     shaderMainText,
     params
 )

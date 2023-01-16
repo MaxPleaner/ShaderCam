@@ -7,10 +7,10 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
 import com.skamz.shadercam.R
 import com.skamz.shadercam.shaders.util.ShaderAttributes
-import com.skamz.shadercam.shaders.util.defaultShaderMainText
 
+import io.github.rosemoe.sora.widget.CodeEditor
 class EditorActivity : AppCompatActivity(){
-    lateinit var textInput: TextInputEditText
+    lateinit var textInput: CodeEditor
     lateinit var nameInput: TextInputEditText
 
     private fun saveShader(name: String, shaderMainText: String) {
@@ -35,8 +35,11 @@ class EditorActivity : AppCompatActivity(){
 
         val cameraLink = findViewById<Button>(R.id.camera_link);
         val saveButton = findViewById<Button>(R.id.save)
-        textInput = findViewById<TextInputEditText>(R.id.text_input);
-        nameInput = findViewById<TextInputEditText>(R.id.name_input);
+        textInput = findViewById(R.id.text_input);
+        nameInput = findViewById(R.id.name_input);
+
+//        val grammarDefinition = DefaultGrammarDefinition.withLanguageConfiguration()
+//        textInput.setEditorLanguage(TextMateLanguage.create("GLSL", true))
 
         setValuesFromActiveShader()
 

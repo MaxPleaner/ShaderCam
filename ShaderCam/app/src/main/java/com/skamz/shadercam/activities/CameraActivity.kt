@@ -12,6 +12,8 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.room.Room
+import androidx.room.RoomDatabase
 import com.google.android.material.slider.Slider
 import com.otaliastudios.cameraview.CameraListener
 import com.otaliastudios.cameraview.CameraView
@@ -23,6 +25,8 @@ import com.otaliastudios.opengl.program.GlShader
 import com.otaliastudios.opengl.surface.EglWindowSurface
 import com.otaliastudios.opengl.texture.GlTexture
 import com.skamz.shadercam.*
+import com.skamz.shadercam.database.AppDatabase
+import com.skamz.shadercam.database.ShaderDao
 import com.skamz.shadercam.databinding.ActivityCameraBinding
 import com.skamz.shadercam.shaders.camera_view_defaults.NoopShader
 import com.skamz.shadercam.shaders.util.GenericShader
@@ -55,12 +59,22 @@ class CameraActivity : AppCompatActivity() {
 
         var shaderHasError: Boolean = false
         var shaderErrorMsg: String? = null
+
+        lateinit var db: RoomDatabase
+        lateinit var shaderDao: ShaderDao
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityCameraBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
+
+        db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java, "shadercam-db"
+        ).build()
+
+        shaderDao = (db as AppDatabase).shaderDao()
 
         findViewById<Button>(R.id.editor_link).setOnClickListener {
             val intent = Intent(this, EditorActivity::class.java)

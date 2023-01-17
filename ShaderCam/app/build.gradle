@@ -1,16 +1,18 @@
+
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
 }
 
 android {
     namespace 'com.skamz.shadercam'
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.skamz.shadercam"
         minSdk 21
-        targetSdk 32
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
@@ -40,7 +42,9 @@ dependencies {
     api("com.otaliastudios:cameraview:2.7.2")
 
     implementation("androidx.room:room-runtime:2.5.0")
-    annotationProcessor("androidx.room:room-compiler:2.5.0")
+    kapt("androidx.room:room-compiler:2.5.0")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
 
     implementation(platform("io.github.Rosemoe.sora-editor:bom:0.21.0"))
     implementation("io.github.Rosemoe.sora-editor:editor")

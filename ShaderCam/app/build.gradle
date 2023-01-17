@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace 'com.skamz.shadercam'
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.skamz.shadercam"
         minSdk 21
-        targetSdk 32
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
@@ -48,8 +48,10 @@ dependencies {
 
     implementation("androidx.viewpager2:viewpager2:1.0.0")
     implementation("com.google.android.material:material:1.7.0")
-    implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'androidx.appcompat:appcompat:1.6.0'
     implementation 'com.google.android.material:material:1.7.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    //color picker
+    implementation 'com.github.duanhong169:colorpicker:1.1.6'
 }

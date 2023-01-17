@@ -69,13 +69,12 @@ class EditorActivity : AppCompatActivity(){
                 val cameraActivityIntent = Intent(this, CameraActivity::class.java)
                 cameraActivityIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                 startActivity(cameraActivityIntent)
-                Toast.makeText(this, "Saved Shader", Toast.LENGTH_SHORT)
             }
         }
 
         saveButton.setOnClickListener {
             saveShader(nameInput.text.toString(), textInput.text.toString())
-            Toast.makeText(this, "Saved Shader", Toast.LENGTH_SHORT)
+            Toast.makeText(this, "Saved Shader", Toast.LENGTH_SHORT).show()
         }
     }
 }

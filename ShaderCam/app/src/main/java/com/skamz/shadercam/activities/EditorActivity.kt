@@ -4,22 +4,40 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
 import com.skamz.shadercam.R
+import com.skamz.shadercam.database.Shader
 import com.skamz.shadercam.shaders.util.ShaderAttributes
-
 import io.github.rosemoe.sora.widget.CodeEditor
 
-class EditorActivity : AppCompatActivity() {
+class EditorActivity : AppCompatActivity(){
+
     lateinit var textInput: CodeEditor
    // lateinit var nameInput: TextInputEditText
     lateinit var addParameter: TextView
 
-    private fun saveShader(name: String, shaderMainText: String) {
+    private fun saveShader(name: String, shaderMainText: String, callback: (() -> Unit)? = null) {
         // TODO: Validate shader and show errors.
         val shaderAttributes = ShaderAttributes(name, shaderMainText, mutableListOf())
         CameraActivity.shaderAttributes = shaderAttributes;
+
+        CoroutineScope(Dispatchers.IO).launch {
+            var record = CameraActivity.shaderDao.findByName(name)
+            if (record == null) {
+                record = Shader(0, name, shaderMainText, "")
+                CameraActivity.shaderDao.insertAll(record)
+            } else {
+                record.shaderMainText = shaderMainText
+                record.paramsJson = ""
+                CameraActivity.shaderDao.update(record)
+                if (callback != null) {
+                    // NOTE: The callback will execute in the background thread.
+                    callback()
+                }
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -54,6 +72,7 @@ class EditorActivity : AppCompatActivity() {
         setValuesFromActiveShader()
 
         cameraLink.setOnClickListener {
+
            // saveShader(nameInput.text.toString(), textInput.text.toString())
 
             val cameraActivityIntent = Intent(this, CameraActivity::class.java)
@@ -63,6 +82,16 @@ class EditorActivity : AppCompatActivity() {
 
         saveButton.setOnClickListener {
         //    saveShader(nameInput.text.toString(), textInput.text.toString())
+            saveShader(nameInput.text.toString(), textInput.text.toString()) {
+                val cameraActivityIntent = Intent(this, CameraActivity::class.java)
+                cameraActivityIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(cameraActivityIntent)
+            }
+        }
+
+        saveButton.setOnClickListener {
+            saveShader(nameInput.text.toString(), textInput.text.toString())
+            Toast.makeText(this, "Saved Shader", Toast.LENGTH_SHORT).show()
         }
     }
 }

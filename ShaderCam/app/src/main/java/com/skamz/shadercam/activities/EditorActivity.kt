@@ -11,6 +11,9 @@ import com.skamz.shadercam.R
 import com.skamz.shadercam.database.Shader
 import com.skamz.shadercam.shaders.util.ShaderAttributes
 import io.github.rosemoe.sora.widget.CodeEditor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class EditorActivity : AppCompatActivity(){
 
@@ -23,7 +26,7 @@ class EditorActivity : AppCompatActivity(){
         val shaderAttributes = ShaderAttributes(name, shaderMainText, mutableListOf())
         CameraActivity.shaderAttributes = shaderAttributes;
 
-//        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.IO).launch {
             var record = CameraActivity.shaderDao.findByName(name)
             if (record == null) {
                 record = Shader(0, name, shaderMainText, "")
@@ -37,7 +40,7 @@ class EditorActivity : AppCompatActivity(){
                     callback()
                 }
             }
-//        }
+        }
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -81,7 +84,6 @@ class EditorActivity : AppCompatActivity(){
         }
 
         saveButton.setOnClickListener {
-        //    saveShader(nameInput.text.toString(), textInput.text.toString())
             saveShader(nameInput.text.toString(), textInput.text.toString()) {
                 val cameraActivityIntent = Intent(this, CameraActivity::class.java)
                 cameraActivityIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);

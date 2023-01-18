@@ -1,5 +1,6 @@
 package com.skamz.shadercam.database
 
+
 import androidx.room.*
 
 @Entity
@@ -31,3 +32,4 @@ interface ShaderDao {
     fun update(shader: Shader)
 
 }
+

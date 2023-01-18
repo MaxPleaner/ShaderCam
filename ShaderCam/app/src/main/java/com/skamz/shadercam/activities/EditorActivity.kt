@@ -15,7 +15,7 @@ import io.github.rosemoe.sora.widget.CodeEditor
 class EditorActivity : AppCompatActivity(){
 
     lateinit var textInput: CodeEditor
-   // lateinit var nameInput: TextInputEditText
+    lateinit var nameInput: TextInputEditText
     lateinit var addParameter: TextView
 
     private fun saveShader(name: String, shaderMainText: String, callback: (() -> Unit)? = null) {
@@ -23,7 +23,7 @@ class EditorActivity : AppCompatActivity(){
         val shaderAttributes = ShaderAttributes(name, shaderMainText, mutableListOf())
         CameraActivity.shaderAttributes = shaderAttributes;
 
-        CoroutineScope(Dispatchers.IO).launch {
+//        CoroutineScope(Dispatchers.IO).launch {
             var record = CameraActivity.shaderDao.findByName(name)
             if (record == null) {
                 record = Shader(0, name, shaderMainText, "")
@@ -37,7 +37,7 @@ class EditorActivity : AppCompatActivity(){
                     callback()
                 }
             }
-        }
+//        }
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -47,7 +47,7 @@ class EditorActivity : AppCompatActivity(){
 
     private fun setValuesFromActiveShader() {
         textInput.setText(CameraActivity.shaderAttributes.shaderMainText);
-//        nameInput.setText(CameraActivity.shaderAttributes.name)
+        nameInput.setText(CameraActivity.shaderAttributes.name)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,7 +64,7 @@ class EditorActivity : AppCompatActivity(){
             i.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
             startActivity(i)
         }
-        // nameInput = findViewById(R.id.name_input);
+         nameInput = findViewById(R.id.name_input);
 
 //        val grammarDefinition = DefaultGrammarDefinition.withLanguageConfiguration()
 //        textInput.setEditorLanguage(TextMateLanguage.create("GLSL", true))
@@ -73,7 +73,7 @@ class EditorActivity : AppCompatActivity(){
 
         cameraLink.setOnClickListener {
 
-           // saveShader(nameInput.text.toString(), textInput.text.toString())
+            saveShader(nameInput.text.toString(), textInput.text.toString())
 
             val cameraActivityIntent = Intent(this, CameraActivity::class.java)
             cameraActivityIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);

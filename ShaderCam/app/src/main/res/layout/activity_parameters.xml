@@ -24,14 +24,13 @@
                     android:background="@drawable/text_input"
                     android:layout_height="wrap_content"
                     android:inputType="text"
-                    android:hint="Name" />
+                    android:hint="Parameter Name" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/type"
-                android:textColor="@color/black"
                 android:textSize="22sp"
                 android:layout_marginTop="30dp"
                 />
@@ -43,95 +42,51 @@
                     android:id="@+id/floatRb"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="FLoat"
+                    android:text="Float"
+                    android:checked="false"
                     android:textSize="18sp"/>
                 <RadioButton
                     android:id="@+id/colorRB"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/color"
+                    android:checked="false"
                     android:textSize="18sp"/>
             </RadioGroup>
 
-     <LinearLayout
-         android:id="@+id/colorLayout"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:visibility="gone"
-         android:orientation="vertical">
-         <!--Pick color Button-->
-         <TextView
-             android:gravity="center"
-             android:padding="10dp"
-             android:id="@+id/pick_color_button"
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:background="@drawable/text_input"
-             android:layout_gravity="center"
-             android:layout_marginTop="32dp"
-             android:layout_marginStart="32dp"
-             android:textColor="@color/black"
-             android:layout_marginEnd="32dp"
-             android:text="Pick Color" />
+             <LinearLayout
+                 android:id="@+id/colorLayout"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:visibility="visible"
+                 android:orientation="vertical">
 
-         <TextView
-             android:id="@+id/gfg_heading"
-             android:textColor="@color/black"
-             android:layout_width="wrap_content"
-             android:layout_height="wrap_content"
-             android:layout_gravity="center"
-             android:layout_marginTop="32dp"
-             android:textSize="18sp"
-             android:text="Your picked color is:" />
+                  <androidx.fragment.app.FragmentContainerView
+                      android:id="@+id/fragment_container_view_tag"
+                      android:layout_height="match_parent"
+                      android:layout_width="match_parent"
+                      android:name="com.skamz.shadercam.activities.ColorPickerFragmentActivity"
+                      tools:layout="@layout/dummy_editor_layout"
+                      />
 
-         <!--sample view to preview selected color by user-->
-         <!--by default this has been set to darker gery-->
-         <!--this can be overridden after user choose the
-             color from color picker-->
-         <!--which has been handled in the MainActivity.java-->
-         <View
-             android:id="@+id/preview_selected_color"
-             android:layout_width="48dp"
-             android:layout_height="48dp"
-             android:layout_gravity="center"
-             android:background="@android:color/darker_gray"
-             android:layout_marginTop="8dp" />
-
-         <!--set color button to overwrite the
-             color for GeeksforGeeks text-->
-         <TextView
-             android:gravity="center"
-             android:padding="10dp"
-             android:id="@+id/set_color_button"
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:background="@drawable/button_background"
-             android:layout_gravity="center"
-             android:layout_marginTop="32dp"
-             android:layout_marginStart="32dp"
-             android:textColor="@color/white"
-             android:layout_marginEnd="32dp"
-             android:text="Set Color" />
-     </LinearLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/setDefaultValue"
-                    android:layout_width="match_parent"
-                    android:background="@drawable/text_input"
-                    android:layout_height="wrap_content"
-                    android:hint="Default Value" />
-            </com.google.android.material.textfield.TextInputLayout>
-
+            </LinearLayout>
             <LinearLayout
                 android:id="@+id/floatLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:visibility="gone"
                 android:orientation="vertical">
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/defaultFloatValue"
+                        android:layout_width="match_parent"
+                        android:background="@drawable/text_input"
+                        android:layout_height="wrap_content"
+                        android:hint="Default Value" />
+                </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -169,7 +124,6 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:padding="15dp"
-                    android:textColor="@color/white"
                     android:background="@drawable/button_background"/>
 
                 <TextView
@@ -181,7 +135,6 @@
                     android:layout_weight="1"
                     android:text="Cancel"
                     android:padding="15dp"
-                    android:textColor="@color/black"
                     android:background="@drawable/text_input"/>
 
             </LinearLayout>

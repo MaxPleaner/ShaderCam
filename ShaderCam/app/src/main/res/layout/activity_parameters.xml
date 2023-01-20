@@ -65,7 +65,7 @@
                       android:id="@+id/fragment_container_view_tag"
                       android:layout_height="match_parent"
                       android:layout_width="match_parent"
-                      android:name="com.skamz.shadercam.activities.ColorPickerFragmentActivity"
+                      android:name="com.skamz.shadercam.activities.ParametersActivityColorPickerFragmentActivity"
                       tools:layout="@layout/dummy_editor_layout"
                       />
 
@@ -81,7 +81,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp">
                     <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/defaultFloatValue"
+                        android:id="@+id/defaultFloatInput"
                         android:layout_width="match_parent"
                         android:background="@drawable/text_input"
                         android:layout_height="wrap_content"
@@ -92,6 +92,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp">
                     <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/minFloatInput"
                         android:layout_width="match_parent"
                         android:background="@drawable/text_input"
                         android:layout_height="wrap_content"
@@ -102,6 +103,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp">
                     <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/maxFloatInput"
                         android:layout_width="match_parent"
                         android:background="@drawable/text_input"
                         android:layout_height="wrap_content"

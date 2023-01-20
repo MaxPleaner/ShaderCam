@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.fragment.app.FragmentContainerView id="@+id/fragment_container_view_tag"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    name="com.skamz.shadercam.activities.ParametersActivityColorPickerFragmentActivity"
+    xmlns:android="http://schemas.android.com/apk/res/android"  />

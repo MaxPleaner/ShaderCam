@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.CameraActivity">
+    tools:context=".activities.CameraActivity"
+    android:id="@+id/camera_layout_main">
 
     <Button
         android:id="@+id/editor_link"
@@ -65,7 +66,8 @@
         android:scaleType="fitCenter"
         android:src="@drawable/camera_switch_front_back"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        android:contentDescription="TODO">
     </ImageButton>
 
     <ImageButton
@@ -79,7 +81,8 @@
         android:scaleType="fitCenter"
         android:src="@drawable/video_mode_icon"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/camera_switch_front_back"></ImageButton>
+        app:layout_constraintStart_toEndOf="@+id/camera_switch_front_back"
+        android:contentDescription="TODO"></ImageButton>
 
     <ImageButton
         android:id="@+id/camera_capture_btn"
@@ -93,7 +96,8 @@
         android:src="@drawable/camera_take_photo"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/camera_switch_front_back">
+        app:layout_constraintStart_toStartOf="@+id/camera_switch_front_back"
+        android:contentDescription="TODO">
 
     </ImageButton>
 

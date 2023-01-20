@@ -1,15 +1,17 @@
 package com.skamz.shadercam.activities
 
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.SurfaceTexture
-import android.opengl.GLES20
 import android.opengl.GLES20.*
+import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.util.Log.*
-import android.view.SurfaceView
+import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.room.Room
@@ -29,17 +31,18 @@ import com.skamz.shadercam.database.AppDatabase
 import com.skamz.shadercam.database.ShaderDao
 import com.skamz.shadercam.databinding.ActivityCameraBinding
 import com.skamz.shadercam.shaders.camera_view_defaults.NoopShader
+import com.skamz.shadercam.shaders.util.ColorShaderParam
+import com.skamz.shadercam.shaders.util.FloatShaderParam
 import com.skamz.shadercam.shaders.util.GenericShader
 import com.skamz.shadercam.shaders.util.ShaderAttributes
 import com.skamz.shadercam.util.IoUtil
 import java.io.*
-import java.nio.CharBuffer
-import java.nio.IntBuffer
+
 
 //test
 class CameraActivity : AppCompatActivity() {
-    lateinit var camera: CameraView;
-    var mode:Mode = Mode.PICTURE
+    private lateinit var camera: CameraView
+    private var mode:Mode = Mode.PICTURE
 
     private lateinit var viewBinding: ActivityCameraBinding
 
@@ -64,6 +67,7 @@ class CameraActivity : AppCompatActivity() {
         lateinit var shaderDao: ShaderDao
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityCameraBinding.inflate(layoutInflater)
@@ -78,13 +82,13 @@ class CameraActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.editor_link).setOnClickListener {
             val intent = Intent(this, EditorActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
             startActivity(intent)
         }
 
         findViewById<Button>(R.id.shader_editor_link).setOnClickListener {
             val intent = Intent(this, ShaderSelectActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
             startActivity(intent)
         }
 
@@ -131,7 +135,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     class MyCameraListener(parent: CameraActivity) : CameraListener() {
-        var cameraActivity: CameraActivity = parent
+        private var cameraActivity: CameraActivity = parent
         override fun onPictureTaken(result: PictureResult) {
             result.toBitmap { bmp ->
                 val path = IoUtil.buildPhotoPath(cameraActivity)
@@ -148,29 +152,48 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         setShader(shader)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun updateShaderParams(paramName: String, num: Float) {
         shader.dataValues[paramName] = num
         updateShaderText()
     }
 
-    fun Float.format(digits: Int) = "%.${digits}f".format(this)
+    private fun Float.format(digits: Int) = "%.${digits}f".format(this)
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun updateShaderText(nameOverride: String? = null) {
         val shaderTitle = findViewById<TextView>(R.id.shader_title)
         var text = "Current shader: ${nameOverride ?: shader.name}"
-        if (shader.params.count() > 0) {
+        if (shader.params.isNotEmpty()) {
             var paramHints = ""
             shader.params.forEachIndexed { index, shaderParam ->
-                var shaderVal = shader.dataValues[shaderParam.paramName]
-                if (shaderVal == null) {
-                    shaderVal = shaderParam.default
+                val shaderVal = shader.dataValues[shaderParam.paramName]
+                val shaderValString: String = when(shaderParam.type) {
+                    "float" -> {
+                        if(shaderVal == null) {
+                            (shaderParam as FloatShaderParam).default
+                        } else {
+                            shaderVal as Float
+                        }.format(2)
+                    }
+                    "color" -> {
+                        val colorInt = if(shaderVal == null) {
+                            (shaderParam as ColorShaderParam).default
+                        } else {
+                            (shaderVal as Int)
+                        }
+                        val color = Color.valueOf(colorInt)
+                        "${color.red()}, ${color.blue()}, ${color.green()}"
+                    }
+                    else -> "Unknown"
                 }
-                paramHints += "\n  ${index + 1}. ${shaderParam.paramName} (${shaderVal.format(2)})"
+                paramHints += "\n  ${index + 1}. ${shaderParam.paramName} (${shaderValString})"
             }
             text += "\n Params: $paramHints"
         }
@@ -181,14 +204,14 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun fit(value: Float, oldMin: Float, oldMax: Float, newMin: Float, newMax: Float): Float {
-        val input_range: Float = oldMax - oldMin
-        val output_range: Float = newMax - newMin
+        val inputRange: Float = oldMax - oldMin
+        val outputRange: Float = newMax - newMin
 
-        return (value - oldMin) * output_range / input_range + newMin
+        return (value - oldMin) * outputRange / inputRange + newMin
     }
 
     // Returns null if shader is valid. Otherwise, returns error message
-    fun validateShader(shader: GenericShader): String? {
+    private fun validateShader(shader: GenericShader): String? {
         val core = EglCore()
         val texture = GlTexture()
         val surfaceTexture = SurfaceTexture(texture.id)
@@ -210,7 +233,8 @@ class CameraActivity : AppCompatActivity() {
         camera.filter = GenericShader()
     }
 
-    private fun handleShaderError (error: String, shaderName: String) {
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun handleShaderError (error: String) {
         useFallbackShader()
         val uiContainer = findViewById<LinearLayout>(R.id.dynamic_ui)
         uiContainer.removeAllViews()
@@ -219,18 +243,18 @@ class CameraActivity : AppCompatActivity() {
         updateShaderText(shader.name)
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun setShader(shader: GenericShader) {
         val error = validateShader(shader)
         if (error != null) {
-            handleShaderError(error, shader.name)
+            handleShaderError(error)
             return
         }
 
         shaderHasError = false
         shaderErrorMsg = null
 
-        camera.filter = shader;
+        camera.filter = shader
 
         val uiContainer = findViewById<LinearLayout>(R.id.dynamic_ui)
         uiContainer.removeAllViews()
@@ -238,15 +262,49 @@ class CameraActivity : AppCompatActivity() {
         updateShaderText()
 
         shader.params.forEach {
-            val inflatedView: View = View.inflate(this, R.layout.param_slider, uiContainer)
-            val slider = inflatedView.findViewById<Slider>(R.id.slider)
-            val default01 = fit(it.default, it.min, it.max, 0.0f, 1.0f)
-            slider.value = default01
+            when (it.type) {
+                "float" -> {
+                    val inflatedView: View = View.inflate(this, R.layout.param_slider, uiContainer)
+                    val slider = inflatedView.findViewById<Slider>(R.id.slider)
+                    val paramTitle = inflatedView.findViewById<TextView>(R.id.param_slider_name)
+                    paramTitle.text = it.paramName
 
-            slider.addOnChangeListener { _, value, _ ->
-                val remappedVal = fit(value, 0.0f,1.0f, it.min, it.max)
-                updateShaderParams(it.paramName, remappedVal)
+                    val shaderParam = it as FloatShaderParam
+                    val default01 = fit(shaderParam.default, shaderParam.min, shaderParam.max, 0.0f, 1.0f)
+
+                    slider.value = default01
+
+                    slider.addOnChangeListener { _, value, _ ->
+                        val remappedVal = fit(value, 0.0f,1.0f, shaderParam.min, shaderParam.max)
+                        updateShaderParams(it.paramName, remappedVal)
+                    }
+                }
+                "color" -> {
+                    val inflatedView: View = View.inflate(this, R.layout.param_color, uiContainer)
+                    val button = inflatedView.findViewById<Button>(R.id.color_param_button)
+                    val paramTitle = inflatedView.findViewById<TextView>(R.id.param_color_name)
+                    paramTitle.text = it.paramName
+
+                    val shaderParam = it as ColorShaderParam
+                    val colorInt = shaderParam.default
+                    button.setBackgroundColor(colorInt)
+
+//                    button.setOnClickListener {
+//                        val popupView = View.inflate(this, R.layout.param_color_popup, uiContainer)
+//                        val pw = PopupWindow(
+//                            popupView,
+//                            400,
+//                            400,
+//                            true
+//                        )
+//                        pw.showAtLocation(findViewById(R.id.camera_layout_main), Gravity.CENTER, 0, 0)
+//                    }
+                }
+                else -> {
+                    throw Exception("unknown type")
+                }
             }
+
         }
     }
 }

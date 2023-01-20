@@ -1,5 +1,6 @@
 package com.skamz.shadercam.shaders.camera_view_defaults
 
+import com.skamz.shadercam.shaders.util.FloatShaderParam
 import com.skamz.shadercam.shaders.util.ShaderParam
 import com.skamz.shadercam.shaders.util.ShaderAttributes
 
@@ -9,7 +10,7 @@ val shaderMainText: String = """
     """.trimIndent()
 
 val params: MutableList<ShaderParam> = mutableListOf(
-    ShaderParam("brightness", 1.0f, 0.0f, 5.0f)
+    FloatShaderParam("brightness", 1.0f, 0.0f, 5.0f)
 )
 
 val BrightShader = ShaderAttributes(

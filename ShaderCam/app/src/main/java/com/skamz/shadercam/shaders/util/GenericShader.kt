@@ -1,8 +1,11 @@
 package com.skamz.shadercam.shaders.util
 
+import android.graphics.Color
 import android.opengl.GLES20
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.otaliastudios.opengl.core.Egloo
 import com.skamz.shadercam.shaders.camera_view_defaults.BrightShader
 import com.skamz.shadercam.shaders.camera_view_defaults.NoopShader
@@ -10,7 +13,7 @@ import com.skamz.shadercam.shaders.camera_view_defaults.NoopShader
 
 class GenericShader() : BaseFilterPatch() {
 
-    var dataValues: MutableMap<String, Float> = mutableMapOf()
+    var dataValues: MutableMap<String, Any> = mutableMapOf()
     var dataLocations: MutableMap<String, Int> = mutableMapOf()
 
     var name: String = shaderAttributes.name
@@ -36,6 +39,13 @@ class GenericShader() : BaseFilterPatch() {
 
     private fun buildUniformsList(): String {
         return params.map {
+            val type = when (it.type) {
+                "float" -> "float"
+                "color" -> "vec3"
+                else -> {
+                    throw Exception("Unknown type ${it.type}")
+                }
+            }
             "uniform float ${it.paramName};"
         }.joinToString("\n")
     }
@@ -70,7 +80,14 @@ class GenericShader() : BaseFilterPatch() {
         params.forEach {
             dataLocations[it.paramName] = GLES20.glGetUniformLocation(programHandle, it.paramName)
             if (dataValues[it.paramName] == null) {
-                dataValues[it.paramName] = it.default
+                val paramVal = when (it.type) {
+                    "float" -> (it as FloatShaderParam).default
+                    "color" -> (it as ColorShaderParam).default
+                    else -> {
+                        throw Exception("Can't handle this type (${it.type}) in the shader")
+                    }
+                }
+                dataValues[it.paramName] = paramVal
             }
             Egloo.checkGlProgramLocation(dataLocations[it.paramName]!!, it.paramName)
         }
@@ -83,10 +100,30 @@ class GenericShader() : BaseFilterPatch() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onPreDraw(timestampUs: Long, transformMatrix: FloatArray) {
         super.onPreDraw(timestampUs, transformMatrix)
         params.forEach {
-            GLES20.glUniform1f(dataLocations[it.paramName]!!, dataValues[it.paramName]!!)
+            when (it.type) {
+                "float" -> {
+                    val value = dataValues[it.paramName]!! as Float
+                    GLES20.glUniform1f(dataLocations[it.paramName]!!, value)
+                }
+                "color" -> {
+                    val value = dataValues[it.paramName]!! as Int
+                    val valueColor = Color.valueOf(value)
+                    GLES20.glUniform3f(
+                        dataLocations[it.paramName]!!,
+                        valueColor.red(),
+                        valueColor.blue(),
+                        valueColor.green()
+                    )
+                }
+                else -> {
+                    throw Exception("Unknown type")
+                }
+            }
+
             Egloo.checkGlError("glUniform1f")
         }
     }

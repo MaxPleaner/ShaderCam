@@ -15,24 +15,23 @@ import com.skamz.shadercam.R
 class VideoPreviewActivity : AppCompatActivity() {
     companion object {
         var videoResult: VideoResult? = null
-        var uri: Uri? = null
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_video_preview)
 
-        val cameraLink = findViewById<Button>(R.id.camera_link);
+        val cameraLink = findViewById<Button>(R.id.camera_link)
         val cameraActivityIntent = Intent(this, CameraActivity::class.java)
-        cameraActivityIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        cameraActivityIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
         cameraLink.setOnClickListener {
             startActivity(cameraActivityIntent)
         }
 
         val saveLink = findViewById<Button>(R.id.save_link)
         saveLink.setOnClickListener {
-            val sharingIntent = Intent(Intent.ACTION_SEND);
-            sharingIntent.type = "video/*";
+            val sharingIntent = Intent(Intent.ACTION_SEND)
+            sharingIntent.type = "video/*"
             sharingIntent.putExtra(Intent.EXTRA_SUBJECT, "Hey this is the video subject")
             sharingIntent.putExtra(Intent.EXTRA_TEXT, "Hey this is the video text")
 
@@ -41,7 +40,7 @@ class VideoPreviewActivity : AppCompatActivity() {
                 baseContext.applicationContext.packageName + ".provider",
                 videoResult!!.file
             )
-            sharingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            sharingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             sharingIntent.putExtra(Intent.EXTRA_STREAM,photoURI)
 
             startActivity(Intent.createChooser(sharingIntent,"Share Video"))
@@ -50,7 +49,7 @@ class VideoPreviewActivity : AppCompatActivity() {
         startVideo()
     }
 
-    fun startVideo() {
+    private fun startVideo() {
         val videoView = findViewById<VideoView>(R.id.video)
         val controller = MediaController(this)
         controller.setAnchorView(videoView)

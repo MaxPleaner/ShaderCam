@@ -15,14 +15,13 @@ import java.util.concurrent.Callable
 class ShaderSelectActivity: AppCompatActivity() {
 
     companion object {
-        lateinit var cameraActivityIntent: Intent
         val shaders = mutableMapOf(
             Shaders.noopShader.name to Shaders.noopShader,
             Shaders.brightShader.name to Shaders.brightShader,
         )
     }
 
-    lateinit var mListView: ListView;
+    private lateinit var mListView: ListView
 
     internal class LoadShadersAsync : Callable<Boolean> {
         internal class Callback(_callback: ((Boolean) -> Unit)?) : TaskRunner.Callback<Boolean> {
@@ -75,7 +74,7 @@ class ShaderSelectActivity: AppCompatActivity() {
         setContentView(viewBinding.root)
 
         val cameraActivityIntent = Intent(this, CameraActivity::class.java)
-        cameraActivityIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        cameraActivityIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
 
         mListView = findViewById(R.id.list_view)
 
@@ -89,7 +88,7 @@ class ShaderSelectActivity: AppCompatActivity() {
 
         loadShaders()
 
-        val cameraLink = findViewById<Button>(R.id.camera_link);
+        val cameraLink = findViewById<Button>(R.id.camera_link)
         cameraLink.setOnClickListener {
             startActivity(cameraActivityIntent)
         }

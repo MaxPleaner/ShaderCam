@@ -9,6 +9,7 @@ import androidx.annotation.RequiresApi
 import com.otaliastudios.opengl.core.Egloo
 import com.skamz.shadercam.shaders.camera_view_defaults.BrightShader
 import com.skamz.shadercam.shaders.camera_view_defaults.NoopShader
+import com.skamz.shadercam.shaders.camera_view_defaults.TintShader
 
 
 class GenericShader() : BaseFilterPatch() {
@@ -21,7 +22,7 @@ class GenericShader() : BaseFilterPatch() {
     var params: MutableList<ShaderParam> = shaderAttributes.params
 
     companion object {
-        var shaderAttributes: ShaderAttributes = NoopShader
+        var shaderAttributes: ShaderAttributes = TintShader
     }
 
     override fun getFragmentShader(): String {
@@ -39,14 +40,14 @@ class GenericShader() : BaseFilterPatch() {
 
     private fun buildUniformsList(): String {
         return params.map {
-            val type = when (it.type) {
+            val type = when (it.paramType) {
                 "float" -> "float"
                 "color" -> "vec3"
                 else -> {
-                    throw Exception("Unknown type ${it.type}")
+                    throw Exception("Unknown type ${it.paramType}")
                 }
             }
-            "uniform float ${it.paramName};"
+            "uniform ${type} ${it.paramName};"
         }.joinToString("\n")
     }
 
@@ -80,11 +81,11 @@ class GenericShader() : BaseFilterPatch() {
         params.forEach {
             dataLocations[it.paramName] = GLES20.glGetUniformLocation(programHandle, it.paramName)
             if (dataValues[it.paramName] == null) {
-                val paramVal = when (it.type) {
+                val paramVal = when (it.paramType) {
                     "float" -> (it as FloatShaderParam).default
                     "color" -> (it as ColorShaderParam).default
                     else -> {
-                        throw Exception("Can't handle this type (${it.type}) in the shader")
+                        throw Exception("Can't handle this type (${it.paramType}) in the shader")
                     }
                 }
                 dataValues[it.paramName] = paramVal
@@ -104,7 +105,7 @@ class GenericShader() : BaseFilterPatch() {
     override fun onPreDraw(timestampUs: Long, transformMatrix: FloatArray) {
         super.onPreDraw(timestampUs, transformMatrix)
         params.forEach {
-            when (it.type) {
+            when (it.paramType) {
                 "float" -> {
                     val value = dataValues[it.paramName]!! as Float
                     GLES20.glUniform1f(dataLocations[it.paramName]!!, value)

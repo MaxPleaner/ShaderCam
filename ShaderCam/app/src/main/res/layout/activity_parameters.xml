@@ -60,6 +60,11 @@
                  android:layout_height="wrap_content"
                  android:visibility="visible"
                  android:orientation="vertical">
+                 
+                 <TextView
+                     android:layout_width="100dp"
+                     android:layout_height="50dp"
+                     android:text="Default Color:"></TextView>
 
                   <androidx.fragment.app.FragmentContainerView
                       android:id="@+id/fragment_container_view_tag"
@@ -85,6 +90,7 @@
                         android:layout_width="match_parent"
                         android:background="@drawable/text_input"
                         android:layout_height="wrap_content"
+                        android:inputType="numberDecimal"
                         android:hint="Default Value" />
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout
@@ -96,6 +102,7 @@
                         android:layout_width="match_parent"
                         android:background="@drawable/text_input"
                         android:layout_height="wrap_content"
+                        android:inputType="numberDecimal"
                         android:hint="Min Value " />
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout
@@ -106,6 +113,7 @@
                         android:id="@+id/maxFloatInput"
                         android:layout_width="match_parent"
                         android:background="@drawable/text_input"
+                        android:inputType="numberDecimal"
                         android:layout_height="wrap_content"
                         android:hint="Max Value" />
                 </com.google.android.material.textfield.TextInputLayout>
@@ -126,7 +134,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:padding="15dp"
-                    android:background="@drawable/button_background"/>
+                    android:background="@drawable/text_input"/>
 
                 <TextView
                     android:id="@+id/cancelParameters"
@@ -138,6 +146,17 @@
                     android:text="Cancel"
                     android:padding="15dp"
                     android:background="@drawable/text_input"/>
+
+                <TextView
+                    android:id="@+id/deleteParameter"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:text="Delete"
+                    android:padding="15dp"
+                    android:background="@drawable/button_background"/>
 
             </LinearLayout>
 

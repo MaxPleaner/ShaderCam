@@ -6,6 +6,7 @@ import android.graphics.SurfaceTexture
 import android.opengl.GLES20.*
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.util.Log.*
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -76,7 +77,7 @@ class CameraActivity : AppCompatActivity() {
         db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java, "shadercam-db"
-        ).build()
+        ).fallbackToDestructiveMigration().build()
 
         shaderDao = (db as AppDatabase).shaderDao()
 
@@ -156,6 +157,13 @@ class CameraActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         setShader(shader)
+
+        val deletedShaderName = intent?.getStringExtra("DeletedShader")
+        if (deletedShaderName != null) {
+            Toast.makeText(this, "Deleted shader ${deletedShaderName}", Toast.LENGTH_SHORT).show()
+            shaderAttributes = NoopShader
+            updateShaderText()
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -174,7 +182,7 @@ class CameraActivity : AppCompatActivity() {
             var paramHints = ""
             shader.params.forEachIndexed { index, shaderParam ->
                 val shaderVal = shader.dataValues[shaderParam.paramName]
-                val shaderValString: String = when(shaderParam.type) {
+                val shaderValString: String = when(shaderParam.paramType) {
                     "float" -> {
                         if(shaderVal == null) {
                             (shaderParam as FloatShaderParam).default
@@ -262,7 +270,7 @@ class CameraActivity : AppCompatActivity() {
         updateShaderText()
 
         shader.params.forEach {
-            when (it.type) {
+            when (it.paramType) {
                 "float" -> {
                     val inflatedView: View = View.inflate(this, R.layout.param_slider, uiContainer)
                     val slider = inflatedView.findViewById<Slider>(R.id.slider)

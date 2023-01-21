@@ -1,20 +1,23 @@
 package com.skamz.shadercam.shaders.util
 
-interface ShaderParam {
+@kotlinx.serialization.Serializable
+sealed interface ShaderParam {
     val paramName: String
-    val type: String
+    val paramType: String
 }
 
+@kotlinx.serialization.Serializable
 data class FloatShaderParam(
     override val paramName: String,
-    val default: Float,
-    val min: Float,
-    val max: Float,
-    override val type: String = "float",
+    var default: Float,
+    var min: Float,
+    var max: Float,
+    override val paramType: String = "float",
 ) : ShaderParam
 
+@kotlinx.serialization.Serializable
 data class ColorShaderParam(
     override val paramName: String,
-    val default: Int,
-    override val type: String = "color",
+    var default: Int,
+    override val paramType: String = "color",
 ) : ShaderParam

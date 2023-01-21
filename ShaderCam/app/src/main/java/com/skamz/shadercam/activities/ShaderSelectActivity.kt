@@ -2,13 +2,17 @@ package com.skamz.shadercam.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.skamz.shadercam.R
 import com.skamz.shadercam.databinding.ActivityShaderSelectBinding
 import com.skamz.shadercam.shaders.util.ShaderAttributes
+import com.skamz.shadercam.shaders.util.ShaderParam
 import com.skamz.shadercam.shaders.util.Shaders
 import com.skamz.shadercam.util.TaskRunner
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import java.util.concurrent.Callable
 
 
@@ -38,11 +42,24 @@ class ShaderSelectActivity: AppCompatActivity() {
         override fun call(): Boolean {
             val userShaders = CameraActivity.shaderDao.getAll()
             userShaders.forEach {
+                Log.e("DEBUG", it.paramsJson)
+
+//                val wrappedStringJson = """
+//                    {
+//                      "shaderParams": ${it.paramsJson}
+//                    }
+//                """.trimIndent()
+//                val params = Json.decodeFromString<MutableList<ShaderParam>>(wrappedStringJson)
+
+                val params = Json.decodeFromString<MutableList<ShaderParam>>(it.paramsJson)
                 shaders[it.name] = ShaderAttributes(
                     it.name,
                     it.shaderMainText,
-                    mutableListOf()
+                    params
                 )
+            }
+            Shaders.all.forEach {
+                shaders[it.name] = it
             }
             return true
         }

@@ -8,7 +8,7 @@ data class Shader(
     @PrimaryKey(autoGenerate = true) val uid: Int,
     val name: String,
     var shaderMainText: String,
-    var paramsJson: String?
+    var paramsJson: String
 )
 
 @Dao
@@ -20,7 +20,7 @@ interface ShaderDao {
     fun loadAllByIds(ids: IntArray): List<Shader>
 
     @Query("SELECT * FROM shader WHERE name LIKE :name LIMIT 1 ")
-    fun findByName(name: String): Shader
+    fun findByName(name: String): Shader?
 
     @Insert
     fun insertAll(vararg shader: Shader)

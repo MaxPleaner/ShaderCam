@@ -1,22 +1,23 @@
 package com.skamz.shadercam.activities
 
 import android.content.Intent
-import android.content.SharedPreferences.Editor
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
-import android.text.InputType
 import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
 import com.skamz.shadercam.R
 import com.skamz.shadercam.shaders.util.ColorShaderParam
 import com.skamz.shadercam.shaders.util.FloatShaderParam
 import com.skamz.shadercam.shaders.util.ShaderParam
+import androidx.compose.ui.graphics.Color as ComposeColor
 
 class ParametersActivity : AppCompatActivity() {
     private lateinit var floatLayout: LinearLayout
@@ -48,6 +49,7 @@ class ParametersActivity : AppCompatActivity() {
     // mode can be "new" or "update" and changes the saving behavior
     private var mode = "new"
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_parameters)
@@ -55,11 +57,13 @@ class ParametersActivity : AppCompatActivity() {
         setupEditMode(intent)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         setupEditMode(intent)
     }
 
+     @RequiresApi(Build.VERSION_CODES.O)
      private fun setupEditMode(intent: Intent?) {
         val editParamName = intent?.getStringExtra("editParamName");
         if (editParamName != null) {
@@ -95,13 +99,13 @@ class ParametersActivity : AppCompatActivity() {
         maxFloatInput.setText(param.max.toString())
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun setColorValues(param: ColorShaderParam) {
         defaultColorValue = param.default
-        // TODO: set color of picker.
+        ParametersActivityColorPickerFragmentActivity.startingColor = ComposeColor(defaultColorValue)
     }
 
     private fun setType(newType: String) {
-        Log.i("DEBUG", "setting type ${newType}")
         type = newType
         when (type) {
             "float" -> {
@@ -249,9 +253,9 @@ class ParametersActivity : AppCompatActivity() {
         }
     }
 
-    private fun deleteParam(paramName: String? = nameInput.text.toString()) {
+    private fun deleteParam() {
         val param = EditorActivity.parameters.find {
-            it.paramName == paramName
+            it.paramName == origParamName
         }
         EditorActivity.parameters.remove(param)
     }

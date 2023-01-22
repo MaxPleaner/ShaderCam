@@ -106,7 +106,6 @@ class ParametersActivity : AppCompatActivity() {
     }
 
     private fun setType(newType: String) {
-        Log.i("DEBUG", "setting type ${newType}")
         type = newType
         when (type) {
             "float" -> {

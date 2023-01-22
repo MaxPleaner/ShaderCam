@@ -19,7 +19,7 @@
         android:id="@+id/color_param_button"
         android:layout_height="30dp"
         android:layout_width="30dp"
-        android:background="@color/red"
+        android:backgroundTint="@color/red"
         android:translationZ="1dp"
         android:layout_marginLeft="10dp"
         app:layout_constraintBottom_toBottomOf="parent"

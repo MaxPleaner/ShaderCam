@@ -1,6 +1,7 @@
 package com.skamz.shadercam.activities
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.SurfaceTexture
 import android.opengl.GLES20.*
@@ -15,6 +16,7 @@ import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.google.android.material.slider.Slider
@@ -54,7 +56,6 @@ class CameraActivity : AppCompatActivity() {
                 // Due to BaseFilter (and therefore GenericShader) internally using
                 // .newInstance() while capturing photo/video, we cannot pass arguments to the
                 // constructor. So, it is instead configured using the `shaderAttributes` static property.
-                Log.i("DEBUG", "setting shader to ${value.name}")
                 GenericShader.shaderAttributes = value
                 shader = GenericShader()
                 field = value
@@ -296,7 +297,7 @@ class CameraActivity : AppCompatActivity() {
 
                     val shaderParam = it as ColorShaderParam
                     val colorInt = shaderParam.default
-                    button.setBackgroundColor(colorInt)
+                    ViewCompat.setBackgroundTintList(button, ColorStateList.valueOf(colorInt));
 
 //                    button.setOnClickListener {
 //                        val popupView = View.inflate(this, R.layout.param_color_popup, uiContainer)

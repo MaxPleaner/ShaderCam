@@ -22,6 +22,10 @@ import com.godaddy.android.colorpicker.HsvColor
 import com.skamz.shadercam.R
 
 class ParametersActivityColorPickerFragmentActivity : Fragment(R.layout.fragment_color_picker) {
+    companion object {
+        var startingColor: Color = Color.Red
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,

@@ -7,10 +7,7 @@ import android.graphics.SurfaceTexture
 import android.opengl.GLES20.*
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.util.Log.*
-import android.view.Gravity
-import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import androidx.annotation.RequiresApi
@@ -162,15 +159,28 @@ class CameraActivity : AppCompatActivity() {
 
         val deletedShaderName = intent?.getStringExtra("DeletedShader")
         if (deletedShaderName != null) {
-            Toast.makeText(this, "Deleted shader ${deletedShaderName}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Deleted shader $deletedShaderName", Toast.LENGTH_SHORT).show()
             shaderAttributes = NoopShader
             setShader(shader)
+        }
+
+        val updatedColorName = intent?.getStringExtra("UPDATED_COLOR_NAME")
+        if (updatedColorName != null) {
+            val updatedColorValue = intent!!.getIntExtra("UPDATED_COLOR_VALUE", Color.BLACK)
+            updateColorShaderParam(updatedColorName, updatedColorValue!!)
+            setShader(shader) // TODO: don't really need to rebuild the whole shader here.
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun updateShaderParams(paramName: String, num: Float) {
+    private fun updateFloatShaderParam(paramName: String, num: Float) {
         shader.dataValues[paramName] = num
+        updateShaderText()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun updateColorShaderParam(paramName: String, color: Int) {
+        shader.dataValues[paramName] = color
         updateShaderText()
     }
 
@@ -199,7 +209,7 @@ class CameraActivity : AppCompatActivity() {
                             (shaderVal as Int)
                         }
                         val color = Color.valueOf(colorInt)
-                        "${color.red()}, ${color.blue()}, ${color.green()}"
+                        "${color.red().format(2)}, ${color.blue().format(2)}, ${color.green().format(2)}"
                     }
                     else -> "Unknown"
                 }
@@ -271,7 +281,7 @@ class CameraActivity : AppCompatActivity() {
 
         updateShaderText()
 
-        shader.params.forEach {
+        shader.params.forEach { it ->
             when (it.paramType) {
                 "float" -> {
                     val inflatedView: View = View.inflate(this, R.layout.param_slider, uiContainer)
@@ -280,13 +290,14 @@ class CameraActivity : AppCompatActivity() {
                     paramTitle.text = it.paramName
 
                     val shaderParam = it as FloatShaderParam
-                    val default01 = fit(shaderParam.default, shaderParam.min, shaderParam.max, 0.0f, 1.0f)
+                    val shaderValue = (shader.dataValues[shaderParam.paramName] ?: shaderParam.default) as Float
+                    val default01 = fit(shaderValue, shaderParam.min, shaderParam.max, 0.0f, 1.0f)
 
                     slider.value = default01
 
                     slider.addOnChangeListener { _, value, _ ->
                         val remappedVal = fit(value, 0.0f,1.0f, shaderParam.min, shaderParam.max)
-                        updateShaderParams(it.paramName, remappedVal)
+                        updateFloatShaderParam(it.paramName, remappedVal)
                     }
                 }
                 "color" -> {
@@ -296,19 +307,16 @@ class CameraActivity : AppCompatActivity() {
                     paramTitle.text = it.paramName
 
                     val shaderParam = it as ColorShaderParam
-                    val colorInt = shaderParam.default
+                    val colorInt = (shader.dataValues[shaderParam.paramName] ?: shaderParam.default) as Int
                     ViewCompat.setBackgroundTintList(button, ColorStateList.valueOf(colorInt));
 
-//                    button.setOnClickListener {
-//                        val popupView = View.inflate(this, R.layout.param_color_popup, uiContainer)
-//                        val pw = PopupWindow(
-//                            popupView,
-//                            400,
-//                            400,
-//                            true
-//                        )
-//                        pw.showAtLocation(findViewById(R.id.camera_layout_main), Gravity.CENTER, 0, 0)
-//                    }
+                    button.setOnClickListener { _ ->
+                        CameraColorPickerActivity.startingColor = colorInt
+                        CameraColorPickerActivity.paramName = it.paramName
+                        val intent = Intent(this, CameraColorPickerActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                        startActivity(intent)
+                    }
                 }
                 else -> {
                     throw Exception("unknown type")

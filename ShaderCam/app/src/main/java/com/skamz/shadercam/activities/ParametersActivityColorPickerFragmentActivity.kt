@@ -7,13 +7,11 @@ import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
@@ -22,9 +20,8 @@ import androidx.fragment.app.Fragment
 import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
 import com.skamz.shadercam.R
-import androidx.compose.runtime.setValue
 
-class ColorPickerFragmentActivity : Fragment(R.layout.fragment_color_picker) {
+class ParametersActivityColorPickerFragmentActivity : Fragment(R.layout.fragment_color_picker) {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -35,13 +32,13 @@ class ColorPickerFragmentActivity : Fragment(R.layout.fragment_color_picker) {
 
         composeView.apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent { buildContent() }
+            setContent { BuildContent() }
         }
         return binding
     }
 
     @Composable
-    fun buildContent() {
+    fun BuildContent() {
         var selectedColor: Color by remember { mutableStateOf(Color.White) }
 
         Box {
@@ -74,6 +71,7 @@ class ColorPickerFragmentActivity : Fragment(R.layout.fragment_color_picker) {
                         .align(Alignment.TopStart),
                     onColorChanged = { color: HsvColor ->
                         selectedColor = color.toColor()
+                        (activity as ParametersActivity).defaultColorValue = selectedColor.toArgb()
                     }
                 )
             }

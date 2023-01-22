@@ -4,26 +4,25 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     >
-
     <TextView
-        android:id="@+id/param_slider_name"
+        android:id="@+id/param_color_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Param Name"
         android:textColor="@color/white"
         android:background="@color/black"
-        app:layout_constraintBottom_toTopOf="@+id/slider"
+        app:layout_constraintBottom_toTopOf="@+id/color_param_button"
         app:layout_constraintStart_toStartOf="parent"
         />
 
-    <com.google.android.material.slider.Slider
-        android:id="@+id/slider"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+    <Button
+        android:id="@+id/color_param_button"
+        android:layout_height="30dp"
+        android:layout_width="30dp"
+        android:background="@color/red"
         android:translationZ="1dp"
+        android:layout_marginLeft="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-    </com.google.android.material.slider.Slider>
-
-
+        app:layout_constraintStart_toStartOf="parent"
+    />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -10,11 +10,13 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
 import com.skamz.shadercam.R
 import com.skamz.shadercam.shaders.util.ColorShaderParam
 import com.skamz.shadercam.shaders.util.FloatShaderParam
+import com.skamz.shadercam.shaders.util.ShaderParam
 
 class ParametersActivity : AppCompatActivity() {
     private lateinit var floatLayout: LinearLayout
@@ -33,6 +35,8 @@ class ParametersActivity : AppCompatActivity() {
     private var defaultFloatValueInitial: Float = 1f
     private var maxFloatValueInitial: Float = 1f
     private var minFloatValueInitial: Float = 0f
+
+    private var origParamName: String? = null
 
     private var defaultColorValueInitial = Color.BLUE
     var defaultColorValue: Int = defaultColorValueInitial
@@ -56,12 +60,11 @@ class ParametersActivity : AppCompatActivity() {
         setupEditMode(intent)
     }
 
-     fun setupEditMode(intent: Intent?) {
+     private fun setupEditMode(intent: Intent?) {
         val editParamName = intent?.getStringExtra("editParamName");
         if (editParamName != null) {
             mode = "edit"
             saveBtn.text = "Update"
-            nameInput.inputType = InputType.TYPE_NULL
             deleteBtn.visibility = View.VISIBLE
 
             val param = EditorActivity.parameters.find {
@@ -71,6 +74,7 @@ class ParametersActivity : AppCompatActivity() {
             setType(param.paramType)
 
             nameInput.setText(param.paramName)
+            origParamName = param.paramName
 
             when (param.paramType) {
                 "float" -> setFloatValues(param as FloatShaderParam)
@@ -79,8 +83,8 @@ class ParametersActivity : AppCompatActivity() {
         } else {
             mode = "new"
             saveBtn.text = "Save"
-            nameInput.inputType = InputType.TYPE_CLASS_TEXT
             deleteBtn.visibility = View.GONE
+            origParamName = null
             resetValues()
         }
     }
@@ -139,13 +143,61 @@ class ParametersActivity : AppCompatActivity() {
             setOnClickListeners()
     }
 
+    // Returns error string or null
+    private fun validateForSave (): String? {
+        val name = nameInput.text.toString()
+        if (name.isEmpty()) {
+            return "Parameter name cannot be empty"
+        }
+        val existingParamNames = EditorActivity.parameters.map { it.paramName }
+        when (mode) {
+            "new" -> {
+                if (existingParamNames.contains(name)) {
+                    return "Parameter name is already taken"
+                }
+            }
+            "edit" -> {
+                val otherExistingParamNames = existingParamNames.filter {
+                    if (origParamName != null) {
+                        origParamName != it
+                    } else {
+                        true
+                    }
+                }
+                if (otherExistingParamNames.contains(name)) {
+                    return "Parameter name is already taken"
+                }
+            }
+        }
+        if (!validVariableName(name)) {
+            return """
+                Name can only contain A-Z a-z 0-9 _
+                Name cannot begin with 0-9
+            """.trimIndent()
+        }
+
+        return null
+    }
+
+    private fun validVariableName(name: String): Boolean {
+        // Contains only letters, numbers, and underscore
+        // Cannot begin with digit
+        var regex = Regex("^[A-Za-z_][A-Za-z_0-9]*$")
+        return regex.matches(name)
+    }
+
     private fun setOnClickListeners() {
         colorRB.setOnClickListener { toggleParameterType(colorRB) }
         floatRB.setOnClickListener { toggleParameterType(floatRB) }
 
         saveBtn.setOnClickListener {
-            save()
-            goBackToEditor()
+            val err = validateForSave()
+            if (err != null) {
+                Toast.makeText(this, err, Toast.LENGTH_SHORT).show()
+            } else {
+                save()
+                goBackToEditor()
+            }
         }
 
         cancelBtn.setOnClickListener {
@@ -166,58 +218,40 @@ class ParametersActivity : AppCompatActivity() {
     }
 
     private fun save() {
-        when (mode) {
-            "new" -> saveNewParam()
-            "edit" -> updateParam()
-        }
-    }
-
-    private fun saveNewParam() {
+        lateinit var shaderParam: ShaderParam
         when (type) {
             "float" -> {
-                val shaderParam = FloatShaderParam(
+                shaderParam = FloatShaderParam(
                     paramName = nameInput.text.toString(),
                     default = defaultFloatInput.text.toString().toFloat(),
                     min = minFloatInput.text.toString().toFloat(),
                     max = maxFloatInput.text.toString().toFloat()
                 )
-                EditorActivity.parameters.add(shaderParam)
             }
             "color" -> {
-                val shaderParam = ColorShaderParam(
+                shaderParam = ColorShaderParam(
                     paramName = nameInput.text.toString(),
                     default = defaultColorValue
                 )
+            }
+        }
+        when (mode) {
+            "new" -> {
                 EditorActivity.parameters.add(shaderParam)
             }
-        }
-    }
-
-    private fun updateParam() {
-        EditorActivity.parameters.forEachIndexed { index, param ->
-            param.takeIf { it.paramName == nameInput.text.toString()}?.let {
-                var updatedParam = param
-                when (type) {
-                    "float" -> {
-                        updatedParam = updatedParam as FloatShaderParam
-                        updatedParam.default = defaultFloatInput.text.toString().toFloat()
-                        updatedParam.min = minFloatInput.text.toString().toFloat()
-
-                        updatedParam.max = maxFloatInput.text.toString().toFloat()
-                    }
-                    "color" -> {
-                        updatedParam = updatedParam as ColorShaderParam
-                        updatedParam.default = defaultColorValue
+            "edit" -> {
+                EditorActivity.parameters.forEachIndexed { index, param ->
+                    param.takeIf { it.paramName == origParamName }?.let {
+                        EditorActivity.parameters[index] = shaderParam
                     }
                 }
-                EditorActivity.parameters[index] = updatedParam
             }
         }
     }
 
-    private fun deleteParam() {
+    private fun deleteParam(paramName: String? = nameInput.text.toString()) {
         val param = EditorActivity.parameters.find {
-            it.paramName == nameInput.text.toString()
+            it.paramName == paramName
         }
         EditorActivity.parameters.remove(param)
     }

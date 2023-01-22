@@ -158,84 +158,101 @@ class EditorActivity : AppCompatActivity(){
                 i.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                 i.putExtra("editParamName", name);
                 startActivity(i)
-            }
+        }
 
         cameraLink.setOnClickListener {
-            if (isTemplateShader()) {
-                val msg = """
+            cameraLinkOnClick()
+        }
+
+        saveButton.setOnClickListener {
+            saveButtonOnClick()
+        }
+
+        deleteButton.setOnClickListener {
+            deleteButtonOnClick()
+        }
+    }
+
+    private fun saveButtonOnClick() {
+        if (isTemplateShader()) {
+            val msg = """
+                    Template shaders cannot be altered.
+                    Change the name in order to save.
+                """.trimIndent()
+            return Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        }
+        if (nameInput.text.toString().isEmpty()) {
+            return Toast.makeText(this, "Shader name cannot be blank", Toast.LENGTH_SHORT).show()
+        }
+        saveShader()
+    }
+
+    private fun cameraLinkOnClick () {
+        if (nameInput.text.toString().isEmpty()) {
+            return Toast.makeText(this, "Shader name cannot be blank", Toast.LENGTH_SHORT).show()
+        }
+        if (isTemplateShader()) {
+            val msg = """
                     Template shaders cannot be altered.
                     Changes will not be persisted.
                     Change the name in order to save as a new shader.
                 """.trimIndent()
-                AlertDialog.Builder(this)
-                    .setTitle("Shader will not be saved")
-                    .setMessage(msg)
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setPositiveButton(android.R.string.ok) { _, _ ->
-                        saveShaderWithoutPersistance()
-                        goToCameraActivity()
-                    }
-                    .setNegativeButton(android.R.string.cancel, null).show()
-            } else {
-                saveShader {
+            AlertDialog.Builder(this)
+                .setTitle("Shader will not be saved")
+                .setMessage(msg)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    saveShaderWithoutPersistance()
                     goToCameraActivity()
                 }
+                .setNegativeButton(android.R.string.cancel, null).show()
+        } else {
+            saveShader {
+                goToCameraActivity()
             }
         }
+    }
 
-        saveButton.setOnClickListener {
-            if (isTemplateShader()) {
-                val msg = """
-                    Template shaders cannot be altered.
-                    Change the name in order to save.
-                """.trimIndent()
-                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
-            } else {
-                saveShader()
-            }
-        }
-
-        deleteButton.setOnClickListener {
-            val context = this
-            if (isTemplateShader()) {
-                Toast.makeText(context, "Cannot delete template shader", Toast.LENGTH_SHORT).show()
-            } else {
-                CoroutineScope(Dispatchers.IO).launch {
-                    val record = CameraActivity.shaderDao.findByName(nameInput.text.toString())
-                    if (record == null) {
-                        val msg = "No shader with this name is saved."
-                        runOnUiThread { Toast.makeText(context, msg, Toast.LENGTH_SHORT).show() }
-                    } else {
-                        val msg = "Really delete shader ${nameInput.text.toString()}?"
-                        runOnUiThread {
-                            AlertDialog.Builder(context)
-                                .setTitle("Confirm Delete")
-                                .setMessage(msg)
-                                .setIcon(android.R.drawable.ic_dialog_alert)
-                                .setPositiveButton(android.R.string.ok) { _, _ ->
-                                    CoroutineScope(Dispatchers.IO).launch {
-                                        CameraActivity.shaderDao.delete(record)
-                                        goToCameraActivity { intent ->
-                                            intent.putExtra(
-                                                "DeletedShader",
-                                                nameInput.text.toString()
-                                            )
-                                        }
+    private fun deleteButtonOnClick () {
+        val context = this
+        if (isTemplateShader()) {
+            Toast.makeText(context, "Cannot delete template shader", Toast.LENGTH_SHORT).show()
+        } else {
+            CoroutineScope(Dispatchers.IO).launch {
+                val record = CameraActivity.shaderDao.findByName(nameInput.text.toString())
+                if (record == null) {
+                    val msg = "No shader with this name is saved."
+                    runOnUiThread { Toast.makeText(context, msg, Toast.LENGTH_SHORT).show() }
+                } else {
+                    val msg = "Really delete shader ${nameInput.text.toString()}?"
+                    runOnUiThread {
+                        AlertDialog.Builder(context)
+                            .setTitle("Confirm Delete")
+                            .setMessage(msg)
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setPositiveButton(android.R.string.ok) { _, _ ->
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    CameraActivity.shaderDao.delete(record)
+                                    goToCameraActivity { intent ->
+                                        intent.putExtra(
+                                            "DeletedShader",
+                                            nameInput.text.toString()
+                                        )
                                     }
                                 }
-                                .setNegativeButton(android.R.string.cancel, null).show()
-                        }
-
+                            }
+                            .setNegativeButton(android.R.string.cancel, null).show()
                     }
+
                 }
             }
         }
     }
 
-        fun goToCameraActivity(callback: ((Intent) -> Unit)? = null) {
-            val cameraActivityIntent = Intent(this, CameraActivity::class.java)
-            cameraActivityIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-            if (callback != null) { callback(cameraActivityIntent) }
-            startActivity(cameraActivityIntent)
-        }
+    private fun goToCameraActivity(callback: ((Intent) -> Unit)? = null) {
+        val cameraActivityIntent = Intent(this, CameraActivity::class.java)
+        cameraActivityIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+        if (callback != null) { callback(cameraActivityIntent) }
+        startActivity(cameraActivityIntent)
+    }
 }

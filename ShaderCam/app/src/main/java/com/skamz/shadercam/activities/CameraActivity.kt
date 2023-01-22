@@ -54,6 +54,7 @@ class CameraActivity : AppCompatActivity() {
                 // Due to BaseFilter (and therefore GenericShader) internally using
                 // .newInstance() while capturing photo/video, we cannot pass arguments to the
                 // constructor. So, it is instead configured using the `shaderAttributes` static property.
+                Log.i("DEBUG", "setting shader to ${value.name}")
                 GenericShader.shaderAttributes = value
                 shader = GenericShader()
                 field = value
@@ -162,7 +163,7 @@ class CameraActivity : AppCompatActivity() {
         if (deletedShaderName != null) {
             Toast.makeText(this, "Deleted shader ${deletedShaderName}", Toast.LENGTH_SHORT).show()
             shaderAttributes = NoopShader
-            updateShaderText()
+            setShader(shader)
         }
     }
 

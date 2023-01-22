@@ -42,15 +42,6 @@ class ShaderSelectActivity: AppCompatActivity() {
         override fun call(): Boolean {
             val userShaders = CameraActivity.shaderDao.getAll()
             userShaders.forEach {
-                Log.e("DEBUG", it.paramsJson)
-
-//                val wrappedStringJson = """
-//                    {
-//                      "shaderParams": ${it.paramsJson}
-//                    }
-//                """.trimIndent()
-//                val params = Json.decodeFromString<MutableList<ShaderParam>>(wrappedStringJson)
-
                 val params = Json.decodeFromString<MutableList<ShaderParam>>(it.paramsJson)
                 shaders[it.name] = ShaderAttributes(
                     it.name,

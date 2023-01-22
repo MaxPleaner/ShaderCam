@@ -1,6 +1,5 @@
 package com.skamz.shadercam.database
 
-
 import androidx.room.*
 
 @Entity
@@ -16,9 +15,6 @@ interface ShaderDao {
     @Query("SELECT * FROM shader")
     fun getAll(): List<Shader>
 
-    @Query("SELECT * FROM shader WHERE uid IN (:ids)")
-    fun loadAllByIds(ids: IntArray): List<Shader>
-
     @Query("SELECT * FROM shader WHERE name LIKE :name LIMIT 1 ")
     fun findByName(name: String): Shader?
 
@@ -30,6 +26,5 @@ interface ShaderDao {
 
     @Update
     fun update(shader: Shader)
-
 }
 

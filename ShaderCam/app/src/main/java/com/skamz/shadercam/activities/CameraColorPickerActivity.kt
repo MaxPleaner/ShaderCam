@@ -1,50 +1,78 @@
 package com.skamz.shadercam.activities
 
+import android.content.Intent
+import android.graphics.Camera
+import android.graphics.Color
+import androidx.compose.ui.graphics.Color as ComposeColor
 import android.os.Bundle
-import android.view.LayoutInflater
+import android.util.Log
 import android.view.View
-import android.view.ViewGroup
+import android.widget.Button
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.fragment.app.Fragment
 import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
 import com.skamz.shadercam.R
 
-class CameraActivityColorPickerFragmentActivity : Fragment(R.layout.fragment_color_picker) {
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        val binding = inflater.inflate(R.layout.fragment_color_picker, container, false)
-        val composeView = binding.findViewById<ComposeView>(R.id.compose_view)
+class CameraColorPickerActivity: AppCompatActivity() {
+    companion object {
+        lateinit var paramName: String
+        var startingColor: Int = Color.RED
+        var finalColor: Int = startingColor
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.camera_activity_color_picker)
+        addColorPicker()
+
+        findViewById<Button>(R.id.camera_link).setOnClickListener {
+            val i = Intent(this, CameraActivity::class.java)
+            i.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+            i.putExtra("UPDATED_COLOR_NAME", paramName)
+            i.putExtra("UPDATED_COLOR_VALUE", finalColor)
+            startActivity(i)
+        }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        addColorPicker()
+    }
+
+    private fun addColorPicker() {
+        val composeView = findViewById<ComposeView>(R.id.compose_view)
 
         composeView.apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent { BuildContent() }
         }
-        return binding
     }
 
     @Composable
     fun BuildContent() {
-        var selectedColor: Color by remember { mutableStateOf(Color.White) }
+        var selectedColor: androidx.compose.ui.graphics.Color by remember { mutableStateOf(
+            ComposeColor(startingColor)
+        ) }
+        finalColor = selectedColor.toArgb()
 
         Box {
             Text(
-                "Param Name (Change Me)",
-                color = Color.White,
+                paramName,
+                color = androidx.compose.ui.graphics.Color.Red,
                 fontSize = 18.sp,
                 modifier = Modifier
                     .align(Alignment.TopStart)
@@ -71,6 +99,7 @@ class CameraActivityColorPickerFragmentActivity : Fragment(R.layout.fragment_col
                         .align(Alignment.TopStart),
                     onColorChanged = { color: HsvColor ->
                         selectedColor = color.toColor()
+                        finalColor = selectedColor.toArgb()
                     }
                 )
             }

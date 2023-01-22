@@ -5,7 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -43,7 +46,7 @@ class ParametersActivityColorPickerFragmentActivity : Fragment(R.layout.fragment
 
     @Composable
     fun BuildContent() {
-        var selectedColor: Color by remember { mutableStateOf(Color.White) }
+        var selectedColor: Color by remember { mutableStateOf(startingColor) }
 
         Box {
             Text(

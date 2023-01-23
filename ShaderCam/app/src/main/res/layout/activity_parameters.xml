@@ -133,7 +133,20 @@
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:orientation="vertical">
-            ></LinearLayout>
+            >
+            <Button
+                android:id="@+id/pick_default_texture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Choose Image For Default Value"
+                ></Button>
+            <ImageView
+                android:id="@+id/default_texture_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="visible"
+            ></ImageView>
+        </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"

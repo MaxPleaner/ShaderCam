@@ -2,14 +2,15 @@ package com.skamz.shadercam.activities
 
 import android.content.Intent
 import android.graphics.Color
+import android.media.Image
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.LinearLayout
-import android.widget.RadioButton
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
@@ -18,6 +19,7 @@ import com.skamz.shadercam.shaders.util.ColorShaderParam
 import com.skamz.shadercam.shaders.util.FloatShaderParam
 import com.skamz.shadercam.shaders.util.ShaderParam
 import com.skamz.shadercam.shaders.util.TextureShaderParam
+import java.net.URI
 import androidx.compose.ui.graphics.Color as ComposeColor
 
 class ParametersActivity : AppCompatActivity() {
@@ -33,6 +35,10 @@ class ParametersActivity : AppCompatActivity() {
     private lateinit var defaultFloatInput: TextInputEditText
     private lateinit var maxFloatInput: TextInputEditText
     private lateinit var minFloatInput: TextInputEditText
+
+    private lateinit var imagePickerAction: ActivityResultLauncher<String>
+
+    private lateinit var defaultTextureImage: ImageView
 
     private var type: String = "float"
 
@@ -114,7 +120,10 @@ class ParametersActivity : AppCompatActivity() {
     }
 
     private fun setTextureValues(param: TextureShaderParam) {
-        throw Exception("ParametersActivity.setTextureValues not implemented")
+        defaultTextureValue = param.default
+        Log.i("DEBUG", defaultTextureValue ?: "Texture value is null")
+        if (defaultTextureValue == null) { return }
+        defaultTextureImage.setImageURI(Uri.parse(defaultTextureValue))
     }
 
     private fun setType(newType: String) {
@@ -166,6 +175,18 @@ class ParametersActivity : AppCompatActivity() {
             cancelBtn = findViewById(R.id.cancelParameters)
             deleteBtn = findViewById(R.id.deleteParameter)
 
+            defaultTextureImage = findViewById<ImageView>(R.id.default_texture_image)
+
+            val intent = Intent(Intent.ACTION_PICK)
+            intent.type = "image/*"
+            imagePickerAction = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+                if (uri != null) {
+                    val publicUri = saveUploadedImage(uri)
+                    defaultTextureValue = uri.toString()
+                    defaultTextureImage.setImageURI(publicUri)
+                }
+            }
+
             setType("float")
 
             setOnClickListeners()
@@ -214,9 +235,21 @@ class ParametersActivity : AppCompatActivity() {
         return regex.matches(name)
     }
 
+    private fun saveUploadedImage(uri: Uri): Uri {
+        Toast.makeText(this, "Picked image: ${uri.path}", Toast.LENGTH_SHORT).show()
+        return uri
+    }
+
     private fun setOnClickListeners() {
         colorRB.setOnClickListener { toggleParameterType(colorRB) }
         floatRB.setOnClickListener { toggleParameterType(floatRB) }
+        textureRB.setOnClickListener { toggleParameterType(textureRB) }
+
+        findViewById<Button>(R.id.pick_default_texture).setOnClickListener {
+            imagePickerAction.launch("image/*")
+        }
+
+        defaultTextureImage.setImageResource(R.drawable.noise_texture)
 
         saveBtn.setOnClickListener {
             val err = validateForSave()
@@ -247,6 +280,7 @@ class ParametersActivity : AppCompatActivity() {
 
     private fun save() {
         lateinit var shaderParam: ShaderParam
+        Log.i("DEBUG", "saving ${type}")
         when (type) {
             "float" -> {
                 shaderParam = FloatShaderParam(
@@ -304,19 +338,26 @@ class ParametersActivity : AppCompatActivity() {
 
     private fun toggleParameterType(view: View) {
         if (view is RadioButton) {
+            floatLayout.visibility = View.GONE
+            colorLayout.visibility = View.GONE
+            textureLayout.visibility = View.GONE
+
             val checked = view.isChecked
             when (view.getId()) {
                 R.id.colorRB ->
                     if (checked) {
                         type = "color"
-                        floatLayout.visibility = View.GONE
                         colorLayout.visibility = View.VISIBLE
                     }
                 R.id.floatRb ->
                     if (checked) {
                         type = "float"
                         floatLayout.visibility = View.VISIBLE
-                        colorLayout.visibility = View.GONE
+                    }
+                R.id.textureRB ->
+                    if (checked) {
+                        type = "texture"
+                        textureLayout.visibility = View.VISIBLE
                     }
             }
         }

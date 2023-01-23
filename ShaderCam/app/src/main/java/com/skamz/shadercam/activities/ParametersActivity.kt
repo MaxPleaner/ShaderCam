@@ -15,10 +15,8 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
 import com.skamz.shadercam.R
-import com.skamz.shadercam.shaders.util.ColorShaderParam
-import com.skamz.shadercam.shaders.util.FloatShaderParam
-import com.skamz.shadercam.shaders.util.ShaderParam
-import com.skamz.shadercam.shaders.util.TextureShaderParam
+import com.skamz.shadercam.shaders.camera_view_defaults.TextureOverlayShaderData
+import com.skamz.shadercam.shaders.util.*
 import java.net.URI
 import androidx.compose.ui.graphics.Color as ComposeColor
 
@@ -51,8 +49,8 @@ class ParametersActivity : AppCompatActivity() {
     private var defaultColorValueInitial = Color.BLUE
     var defaultColorValue: Int = defaultColorValueInitial
 
-    private var defaultTextureValueInitial: String? = null
-    var defaultTextureValue: String? = defaultTextureValueInitial
+    lateinit var defaultTextureValueInitial: String
+    lateinit var defaultTextureValue: String
 
     private lateinit var cancelBtn: TextView
     private lateinit var saveBtn: TextView
@@ -120,9 +118,7 @@ class ParametersActivity : AppCompatActivity() {
     }
 
     private fun setTextureValues(param: TextureShaderParam) {
-        defaultTextureValue = param.default
-        Log.i("DEBUG", defaultTextureValue ?: "Texture value is null")
-        if (defaultTextureValue == null) { return }
+        defaultTextureValue = param.default ?: defaultTextureValueInitial
         defaultTextureImage.setImageURI(Uri.parse(defaultTextureValue))
     }
 
@@ -137,6 +133,9 @@ class ParametersActivity : AppCompatActivity() {
         floatLayout.visibility = View.GONE
 
         type = newType
+
+        Log.i("DEBUG", "making texture RB unchecked")
+
         when (type) {
             "float" -> {
                 floatRB.isChecked = true
@@ -147,6 +146,7 @@ class ParametersActivity : AppCompatActivity() {
                 colorLayout.visibility = View.VISIBLE
             }
             "texture" -> {
+                Log.i("DEBUG", "making texture RB checked")
                 textureRB.isChecked = true
                 textureLayout.visibility = View.VISIBLE
             }
@@ -176,6 +176,9 @@ class ParametersActivity : AppCompatActivity() {
             deleteBtn = findViewById(R.id.deleteParameter)
 
             defaultTextureImage = findViewById<ImageView>(R.id.default_texture_image)
+            defaultTextureValueInitial = TextureOverlayShaderData.default
+            defaultTextureValue = defaultTextureValueInitial
+            defaultTextureImage.setImageURI(Uri.parse(defaultTextureValue))
 
             val intent = Intent(Intent.ACTION_PICK)
             intent.type = "image/*"
@@ -248,8 +251,6 @@ class ParametersActivity : AppCompatActivity() {
         findViewById<Button>(R.id.pick_default_texture).setOnClickListener {
             imagePickerAction.launch("image/*")
         }
-
-        defaultTextureImage.setImageResource(R.drawable.noise_texture)
 
         saveBtn.setOnClickListener {
             val err = validateForSave()

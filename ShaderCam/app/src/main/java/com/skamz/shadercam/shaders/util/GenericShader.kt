@@ -125,7 +125,7 @@ class GenericShader() : BaseFilterPatch() {
                     )
                 }
                 "texture" -> {
-                    throw Exception("need to implement texture handler in GenericShader.onPreDraw")
+//                    throw Exception("need to implement texture handler in GenericShader.onPreDraw")
                     // TODO: Call functions in TextureUtils
                 }
                 else -> {

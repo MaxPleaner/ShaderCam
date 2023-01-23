@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.SurfaceTexture
+import android.net.Uri
 import android.opengl.GLES20.*
 import android.os.Build
 import android.os.Bundle
@@ -31,6 +32,8 @@ import com.skamz.shadercam.database.AppDatabase
 import com.skamz.shadercam.database.ShaderDao
 import com.skamz.shadercam.databinding.ActivityCameraBinding
 import com.skamz.shadercam.shaders.camera_view_defaults.NoopShader
+import com.skamz.shadercam.shaders.camera_view_defaults.TextureOverlayShader
+import com.skamz.shadercam.shaders.camera_view_defaults.TextureOverlayShaderData
 import com.skamz.shadercam.shaders.util.*
 import com.skamz.shadercam.util.IoUtil
 import java.io.*
@@ -69,6 +72,10 @@ class CameraActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityCameraBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
+
+        TextureOverlayShaderData.default = TextureUtils.resourceIdToUri(this, R.drawable.noise_texture).toString()
+        (TextureOverlayShader.params[0] as TextureShaderParam).default = TextureOverlayShaderData.default
+
 
         db = Room.databaseBuilder(
             applicationContext,
@@ -209,6 +216,9 @@ class CameraActivity : AppCompatActivity() {
                         "${color.red().format(2)}, ${color.green().format(2)}, ${color.blue().format(2)}"
                     }
                     "texture" -> {
+                        if (shaderVal == null) {
+                            
+                        }
                         (shaderParam as TextureShaderParam).default ?: "default noise texture"
                     }
                     else -> {
@@ -321,7 +331,19 @@ class CameraActivity : AppCompatActivity() {
                     }
                 }
                 "texture" -> {
-                    throw Exception("texture handler not implemented in CameraActivity.setShader")
+                    val shaderParam = it as TextureShaderParam
+                    val inflatedView: View = View.inflate(this, R.layout.param_texture, uiContainer)
+
+                    val paramTitle = inflatedView.findViewById<TextView>(R.id.param_texture_name)
+                    paramTitle.text = it.paramName
+
+                    val imageView = inflatedView.findViewById<ImageView>(R.id.param_texture_preview)
+                    val imageUriString = (shader.dataValues[shaderParam.paramName] ?: shaderParam.default) as String
+                    imageView.setImageURI(Uri.parse(imageUriString))
+
+                    imageView.setOnClickListener {
+                        throw Exception("Unhandled")
+                    }
                 }
                 else -> {
                     throw Exception("unknown type")

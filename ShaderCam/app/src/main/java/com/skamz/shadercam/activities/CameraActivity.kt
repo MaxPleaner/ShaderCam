@@ -31,10 +31,7 @@ import com.skamz.shadercam.database.AppDatabase
 import com.skamz.shadercam.database.ShaderDao
 import com.skamz.shadercam.databinding.ActivityCameraBinding
 import com.skamz.shadercam.shaders.camera_view_defaults.NoopShader
-import com.skamz.shadercam.shaders.util.ColorShaderParam
-import com.skamz.shadercam.shaders.util.FloatShaderParam
-import com.skamz.shadercam.shaders.util.GenericShader
-import com.skamz.shadercam.shaders.util.ShaderAttributes
+import com.skamz.shadercam.shaders.util.*
 import com.skamz.shadercam.util.IoUtil
 import java.io.*
 
@@ -209,9 +206,14 @@ class CameraActivity : AppCompatActivity() {
                             (shaderVal as Int)
                         }
                         val color = Color.valueOf(colorInt)
-                        "${color.red().format(2)}, ${color.blue().format(2)}, ${color.green().format(2)}"
+                        "${color.red().format(2)}, ${color.green().format(2)}, ${color.blue().format(2)}"
                     }
-                    else -> "Unknown"
+                    "texture" -> {
+                        (shaderParam as TextureShaderParam).default ?: "default noise texture"
+                    }
+                    else -> {
+                        throw Exception("param type not handled in CameraActivity.updateShaderText")
+                    }
                 }
                 paramHints += "\n  ${index + 1}. ${shaderParam.paramName} (${shaderValString})"
             }
@@ -317,6 +319,9 @@ class CameraActivity : AppCompatActivity() {
                         intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                         startActivity(intent)
                     }
+                }
+                "texture" -> {
+                    throw Exception("texture handler not implemented in CameraActivity.setShader")
                 }
                 else -> {
                     throw Exception("unknown type")

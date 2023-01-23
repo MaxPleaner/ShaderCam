@@ -2,6 +2,7 @@ package com.skamz.shadercam.shaders.util
 
 import android.graphics.Color
 import android.opengl.GLES20
+import android.opengl.GLES31
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -14,7 +15,7 @@ import com.skamz.shadercam.shaders.camera_view_defaults.TintShader
 
 class GenericShader() : BaseFilterPatch() {
 
-    var dataValues: MutableMap<String, Any> = mutableMapOf()
+    var dataValues: MutableMap<String, Any?> = mutableMapOf()
     var dataLocations: MutableMap<String, Int> = mutableMapOf()
 
     var name: String = shaderAttributes.name
@@ -33,6 +34,7 @@ class GenericShader() : BaseFilterPatch() {
                     ${buildUniformsList()}
                     varying vec2 vTextureCoord;
                     void main() {
+                        vec2 uv = vTextureCoord;
                         $shaderMainText
                     }
                 """.trimIndent()
@@ -43,8 +45,9 @@ class GenericShader() : BaseFilterPatch() {
             val type = when (it.paramType) {
                 "float" -> "float"
                 "color" -> "vec3"
+                "texture" -> "samplerExternalOES"
                 else -> {
-                    throw Exception("Unknown type ${it.paramType}")
+                    throw Exception("param type not handled in GenericShader.buildUniformsList")
                 }
             }
             "uniform ${type} ${it.paramName};"
@@ -84,6 +87,7 @@ class GenericShader() : BaseFilterPatch() {
                 val paramVal = when (it.paramType) {
                     "float" -> (it as FloatShaderParam).default
                     "color" -> (it as ColorShaderParam).default
+                    "texture" -> (it as TextureShaderParam).default
                     else -> {
                         throw Exception("Can't handle this type (${it.paramType}) in the shader")
                     }
@@ -116,9 +120,13 @@ class GenericShader() : BaseFilterPatch() {
                     GLES20.glUniform3f(
                         dataLocations[it.paramName]!!,
                         valueColor.red(),
-                        valueColor.blue(),
-                        valueColor.green()
+                        valueColor.green(),
+                        valueColor.blue()
                     )
+                }
+                "texture" -> {
+                    throw Exception("need to implement texture handler in GenericShader.onPreDraw")
+                    // TODO: Call functions in TextureUtils
                 }
                 else -> {
                     throw Exception("Unknown type")
@@ -129,3 +137,10 @@ class GenericShader() : BaseFilterPatch() {
         }
     }
 }
+//
+//val textureId = loadTexture(settings.texture)
+//
+//val sTextureLocation = GLES31.glGetUniformLocation(program, "iChannel1")
+//GLES31.glActiveTexture(GLES31.GL_TEXTURE0 + 1)
+//GLES31.glBindTexture(GLES31.GL_TEXTURE_2D, textureId)
+//GLES31.glUniform1i(sTextureLocation, 1)

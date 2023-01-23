@@ -17,14 +17,17 @@ import com.skamz.shadercam.R
 import com.skamz.shadercam.shaders.util.ColorShaderParam
 import com.skamz.shadercam.shaders.util.FloatShaderParam
 import com.skamz.shadercam.shaders.util.ShaderParam
+import com.skamz.shadercam.shaders.util.TextureShaderParam
 import androidx.compose.ui.graphics.Color as ComposeColor
 
 class ParametersActivity : AppCompatActivity() {
     private lateinit var floatLayout: LinearLayout
     private lateinit var colorLayout: LinearLayout
+    private lateinit var textureLayout: LinearLayout
 
     private lateinit var colorRB: RadioButton
     private lateinit var floatRB: RadioButton
+    private lateinit var textureRB: RadioButton
 
     private lateinit var nameInput: TextInputEditText
     private lateinit var defaultFloatInput: TextInputEditText
@@ -41,6 +44,9 @@ class ParametersActivity : AppCompatActivity() {
 
     private var defaultColorValueInitial = Color.BLUE
     var defaultColorValue: Int = defaultColorValueInitial
+
+    private var defaultTextureValueInitial: String? = null
+    var defaultTextureValue: String? = defaultTextureValueInitial
 
     private lateinit var cancelBtn: TextView
     private lateinit var saveBtn: TextView
@@ -83,6 +89,8 @@ class ParametersActivity : AppCompatActivity() {
             when (param.paramType) {
                 "float" -> setFloatValues(param as FloatShaderParam)
                 "color" -> setColorValues(param as ColorShaderParam)
+                "texture" -> setTextureValues(param as TextureShaderParam)
+                else -> throw Exception("Param type not implemented in ParametersActivity.setupEditMode")
             }
         } else {
             mode = "new"
@@ -105,22 +113,36 @@ class ParametersActivity : AppCompatActivity() {
         ParametersActivityColorPickerFragmentActivity.startingColor = ComposeColor(defaultColorValue)
     }
 
+    private fun setTextureValues(param: TextureShaderParam) {
+        throw Exception("ParametersActivity.setTextureValues not implemented")
+    }
+
     private fun setType(newType: String) {
+        colorRB.isChecked = false
+        colorLayout.visibility = View.GONE
+
+        textureRB.isChecked = false
+        textureLayout.visibility = View.GONE
+
+        floatRB.isChecked = false
+        floatLayout.visibility = View.GONE
+
         type = newType
         when (type) {
             "float" -> {
-                colorRB.isChecked = false
-                colorLayout.visibility = View.GONE
-
                 floatRB.isChecked = true
                 floatLayout.visibility = View.VISIBLE
             }
             "color" -> {
                 colorRB.isChecked = true
                 colorLayout.visibility = View.VISIBLE
-
-                floatRB.isChecked = false
-                floatLayout.visibility = View.GONE
+            }
+            "texture" -> {
+                textureRB.isChecked = true
+                textureLayout.visibility = View.VISIBLE
+            }
+            else -> {
+                throw Exception("unimplemented")
             }
         }
     }
@@ -128,9 +150,11 @@ class ParametersActivity : AppCompatActivity() {
     private fun init() {
             colorLayout = findViewById(R.id.colorLayout)
             floatLayout = findViewById(R.id.floatLayout)
+            textureLayout = findViewById(R.id.textureLayout)
 
             colorRB = findViewById(R.id.colorRB)
             floatRB = findViewById(R.id.floatRb)
+            textureRB = findViewById(R.id.textureRB)
 
             nameInput = findViewById(R.id.name_input)
 
@@ -238,6 +262,15 @@ class ParametersActivity : AppCompatActivity() {
                     default = defaultColorValue
                 )
             }
+            "texture" -> {
+                shaderParam = TextureShaderParam(
+                    paramName = nameInput.text.toString(),
+                    default = defaultTextureValue
+                )
+            }
+            else -> {
+                throw Exception("unimplemented")
+            }
         }
         when (mode) {
             "new" -> {
@@ -266,6 +299,7 @@ class ParametersActivity : AppCompatActivity() {
         maxFloatInput.setText(maxFloatValueInitial.toString())
         minFloatInput.setText(minFloatValueInitial.toString())
         defaultColorValue = defaultColorValueInitial
+        defaultTextureValue = defaultTextureValueInitial
     }
 
     private fun toggleParameterType(view: View) {

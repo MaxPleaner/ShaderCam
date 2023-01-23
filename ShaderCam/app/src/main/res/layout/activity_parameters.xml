@@ -52,7 +52,15 @@
                     android:text="@string/color"
                     android:checked="false"
                     android:textSize="18sp"/>
+                <RadioButton
+                    android:id="@+id/textureRB"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Texture"
+                    android:checked="false"
+                    android:textSize="18sp"/>
             </RadioGroup>
+
 
              <LinearLayout
                  android:id="@+id/colorLayout"
@@ -73,8 +81,8 @@
                       android:name="com.skamz.shadercam.activities.ParametersActivityColorPickerFragmentActivity"
                       tools:layout="@layout/dummy_editor_layout"
                       />
-
             </LinearLayout>
+
             <LinearLayout
                 android:id="@+id/floatLayout"
                 android:layout_width="match_parent"
@@ -117,8 +125,15 @@
                         android:layout_height="wrap_content"
                         android:hint="Max Value" />
                 </com.google.android.material.textfield.TextInputLayout>
-
             </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/textureLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:orientation="vertical">
+            ></LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"

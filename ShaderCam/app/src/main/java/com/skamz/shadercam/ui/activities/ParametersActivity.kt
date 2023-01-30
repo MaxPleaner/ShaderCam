@@ -1,10 +1,9 @@
-package com.skamz.shadercam.activities
+package com.skamz.shadercam.ui.activities
 
 import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.RadioButton
@@ -14,9 +13,9 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
 import com.skamz.shadercam.R
-import com.skamz.shadercam.shaders.util.ColorShaderParam
-import com.skamz.shadercam.shaders.util.FloatShaderParam
-import com.skamz.shadercam.shaders.util.ShaderParam
+import com.skamz.shadercam.logic.shaders.util.ColorShaderParam
+import com.skamz.shadercam.logic.shaders.util.FloatShaderParam
+import com.skamz.shadercam.logic.shaders.util.ShaderParam
 import androidx.compose.ui.graphics.Color as ComposeColor
 
 class ParametersActivity : AppCompatActivity() {

@@ -1,4 +1,4 @@
-package com.skamz.shadercam.activities
+package com.skamz.shadercam.ui.activities
 
 import android.content.Intent
 import android.content.res.ColorStateList
@@ -27,15 +27,15 @@ import com.otaliastudios.opengl.program.GlShader
 import com.otaliastudios.opengl.surface.EglWindowSurface
 import com.otaliastudios.opengl.texture.GlTexture
 import com.skamz.shadercam.*
-import com.skamz.shadercam.database.AppDatabase
-import com.skamz.shadercam.database.ShaderDao
+import com.skamz.shadercam.logic.database.AppDatabase
+import com.skamz.shadercam.logic.database.ShaderDao
 import com.skamz.shadercam.databinding.ActivityCameraBinding
-import com.skamz.shadercam.shaders.camera_view_defaults.NoopShader
-import com.skamz.shadercam.shaders.util.ColorShaderParam
-import com.skamz.shadercam.shaders.util.FloatShaderParam
-import com.skamz.shadercam.shaders.util.GenericShader
-import com.skamz.shadercam.shaders.util.ShaderAttributes
-import com.skamz.shadercam.util.IoUtil
+import com.skamz.shadercam.logic.shaders.camera_view_defaults.NoopShader
+import com.skamz.shadercam.logic.shaders.util.ColorShaderParam
+import com.skamz.shadercam.logic.shaders.util.FloatShaderParam
+import com.skamz.shadercam.logic.shaders.util.GenericShader
+import com.skamz.shadercam.logic.shaders.util.ShaderAttributes
+import com.skamz.shadercam.logic.util.IoUtil
 import java.io.*
 
 

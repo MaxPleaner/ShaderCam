@@ -6,7 +6,8 @@
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -15,16 +16,23 @@
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
-        android:requestLegacyExternalStorage="true"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ShaderCam"
         tools:targetApi="31">
         <activity
-            android:name=".activities.ParametersActivity"
+            android:name=".OnboardingBaseActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
+            android:name="com.skamz.shadercam.ui.activities.ParametersActivity"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
@@ -42,7 +50,7 @@
         </provider>
 
         <activity
-            android:name=".activities.CameraActivity"
+            android:name="com.skamz.shadercam.ui.activities.CameraActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -55,28 +63,28 @@
                 android:value="" />
         </activity>
         <activity
-            android:name=".activities.EditorActivity"
+            android:name="com.skamz.shadercam.ui.activities.EditorActivity"
             android:exported="true">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
         <activity
-            android:name=".activities.ShaderSelectActivity"
+            android:name="com.skamz.shadercam.ui.activities.ShaderSelectActivity"
             android:exported="true">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
         <activity
-            android:name=".activities.VideoPreviewActivity"
+            android:name="com.skamz.shadercam.ui.activities.VideoPreviewActivity"
             android:exported="true">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
         <activity
-            android:name=".activities.CameraColorPickerActivity"
+            android:name="com.skamz.shadercam.ui.activities.CameraColorPickerActivity"
             android:exported="true">
             <meta-data
                 android:name="android.app.lib_name"

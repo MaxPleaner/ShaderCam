@@ -1,4 +1,4 @@
-package com.skamz.shadercam.util
+package com.skamz.shadercam.logic.util
 
 import android.os.Handler
 import android.os.Looper

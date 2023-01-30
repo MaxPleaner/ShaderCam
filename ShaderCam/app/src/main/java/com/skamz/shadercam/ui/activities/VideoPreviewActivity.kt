@@ -1,4 +1,4 @@
-package com.skamz.shadercam.activities
+package com.skamz.shadercam.ui.activities
 
 import android.content.Intent
 import android.net.Uri

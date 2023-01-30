@@ -1,16 +1,15 @@
-package com.skamz.shadercam.activities
+package com.skamz.shadercam.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.skamz.shadercam.R
 import com.skamz.shadercam.databinding.ActivityShaderSelectBinding
-import com.skamz.shadercam.shaders.util.ShaderAttributes
-import com.skamz.shadercam.shaders.util.ShaderParam
-import com.skamz.shadercam.shaders.util.Shaders
-import com.skamz.shadercam.util.TaskRunner
+import com.skamz.shadercam.logic.shaders.util.ShaderAttributes
+import com.skamz.shadercam.logic.shaders.util.ShaderParam
+import com.skamz.shadercam.logic.shaders.util.Shaders
+import com.skamz.shadercam.logic.util.TaskRunner
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.util.concurrent.Callable

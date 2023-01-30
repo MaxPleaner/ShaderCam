@@ -1,4 +1,4 @@
-package com.skamz.shadercam.shaders.util
+package com.skamz.shadercam.logic.shaders.util
 
 @kotlinx.serialization.Serializable
 sealed interface ShaderParam {

@@ -1,4 +1,4 @@
-package com.skamz.shadercam.shaders.util;
+package com.skamz.shadercam.logic.shaders.util;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;

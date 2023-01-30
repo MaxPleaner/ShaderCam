@@ -1,4 +1,4 @@
-package com.skamz.shadercam.activities
+package com.skamz.shadercam.ui.activities
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -11,10 +11,10 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
 import com.skamz.shadercam.R
-import com.skamz.shadercam.database.Shader
-import com.skamz.shadercam.shaders.util.ShaderAttributes
-import com.skamz.shadercam.shaders.util.ShaderParam
-import com.skamz.shadercam.shaders.util.Shaders
+import com.skamz.shadercam.logic.database.Shader
+import com.skamz.shadercam.logic.shaders.util.ShaderAttributes
+import com.skamz.shadercam.logic.shaders.util.ShaderParam
+import com.skamz.shadercam.logic.shaders.util.Shaders
 import io.github.rosemoe.sora.widget.CodeEditor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

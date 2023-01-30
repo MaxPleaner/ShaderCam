@@ -1,8 +1,8 @@
-package com.skamz.shadercam.shaders.camera_view_defaults
+package com.skamz.shadercam.logic.shaders.camera_view_defaults
 
-import com.skamz.shadercam.shaders.util.FloatShaderParam
-import com.skamz.shadercam.shaders.util.ShaderParam
-import com.skamz.shadercam.shaders.util.ShaderAttributes
+import com.skamz.shadercam.logic.shaders.util.FloatShaderParam
+import com.skamz.shadercam.logic.shaders.util.ShaderParam
+import com.skamz.shadercam.logic.shaders.util.ShaderAttributes
 
 class BrightShaderData {
     companion object {

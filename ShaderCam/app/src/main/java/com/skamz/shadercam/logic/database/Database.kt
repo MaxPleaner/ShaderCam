@@ -1,4 +1,4 @@
-package com.skamz.shadercam.database
+package com.skamz.shadercam.logic.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase

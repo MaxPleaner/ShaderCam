@@ -1,15 +1,11 @@
-package com.skamz.shadercam.shaders.util
+package com.skamz.shadercam.logic.shaders.util
 
 import android.graphics.Color
 import android.opengl.GLES20
 import android.os.Build
-import android.os.Bundle
-import android.util.Log
 import androidx.annotation.RequiresApi
 import com.otaliastudios.opengl.core.Egloo
-import com.skamz.shadercam.shaders.camera_view_defaults.BrightShader
-import com.skamz.shadercam.shaders.camera_view_defaults.NoopShader
-import com.skamz.shadercam.shaders.camera_view_defaults.TintShader
+import com.skamz.shadercam.logic.shaders.camera_view_defaults.TintShader
 
 
 class GenericShader() : BaseFilterPatch() {

@@ -1,6 +1,4 @@
-package com.skamz.shadercam.shaders.util
-
-import android.graphics.Shader
+package com.skamz.shadercam.logic.shaders.util
 
 class AbstractShader(shaderAttributes: ShaderAttributes) : BaseFilterPatch() {
     open var dataValues: MutableMap<String, Float> = mutableMapOf()

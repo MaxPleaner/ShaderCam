@@ -1,10 +1,8 @@
-package com.skamz.shadercam.shaders.camera_view_defaults
+package com.skamz.shadercam.logic.shaders.camera_view_defaults
 
-import androidx.compose.ui.graphics.Color
-import com.skamz.shadercam.shaders.util.ColorShaderParam
-import com.skamz.shadercam.shaders.util.FloatShaderParam
-import com.skamz.shadercam.shaders.util.ShaderAttributes
-import com.skamz.shadercam.shaders.util.ShaderParam
+import com.skamz.shadercam.logic.shaders.util.ColorShaderParam
+import com.skamz.shadercam.logic.shaders.util.ShaderAttributes
+import com.skamz.shadercam.logic.shaders.util.ShaderParam
 
 class TintShaderData {
     companion object {

@@ -1,5 +1,6 @@
 package com.skamz.shadercam.ui.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -9,9 +10,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.skamz.shadercam.R
 import com.skamz.shadercam.databinding.FragmentSplashBinding
+import com.skamz.shadercam.ui.activities.CameraActivity
+import com.skamz.shadercam.ui.activities.EditorActivity
 
 class SplashFragment : Fragment() {
 
@@ -36,14 +41,25 @@ class SplashFragment : Fragment() {
         Handler(Looper.getMainLooper()).postDelayed({
             lifecycleScope.launchWhenResumed {
                 if (user != null){
-
+                   goToCameraActivity()
                 }else {
+                    findNavController().navigate(
+                        R.id.action_splashFragment_to_loginFragment
+                    )
                 }
             }
         }, 3000)
+
         // Inflate the layout for this fragment
 
         return binding.root
+    }
+
+    private fun goToCameraActivity() {
+        val intent = Intent(requireActivity(), CameraActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+        intent.putExtra("KEEP_VALUES", true)
+        startActivity(intent)
     }
 
 }

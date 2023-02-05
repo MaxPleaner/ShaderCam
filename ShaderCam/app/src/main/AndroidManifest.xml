@@ -6,7 +6,8 @@
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -15,10 +16,10 @@
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
-        android:requestLegacyExternalStorage="true"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ShaderCam"
@@ -26,8 +27,22 @@
         android:usesCleartextTraffic="true"
         >
         <activity
-            android:name=".activities.ParametersActivity"
-            android:exported="false">
+            android:name="com.skamz.shadercam.ui.activities.OnboardingBaseActivity"
+            android:exported="true"
+            android:theme="@style/shaderCamTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
+            android:name="com.skamz.shadercam.ui.activities.ParametersActivity"
+            android:exported="false"
+            android:theme="@style/shaderCamTheme.NoActionBar">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
@@ -44,42 +59,41 @@
         </provider>
 
         <activity
-            android:name=".activities.CameraActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
+            android:name="com.skamz.shadercam.ui.activities.CameraActivity"
+            android:exported="true"
+            android:theme="@style/shaderCamTheme.NoActionBar">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
         <activity
-            android:name=".activities.EditorActivity"
-            android:exported="true">
+            android:name="com.skamz.shadercam.ui.activities.EditorActivity"
+            android:exported="true"
+            android:theme="@style/shaderCamTheme.NoActionBar">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
         <activity
-            android:name=".activities.ShaderSelectActivity"
-            android:exported="true">
+            android:name="com.skamz.shadercam.ui.activities.ShaderSelectActivity"
+            android:exported="true"
+            android:theme="@style/shaderCamTheme.NoActionBar">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
         <activity
-            android:name=".activities.VideoPreviewActivity"
-            android:exported="true">
+            android:name="com.skamz.shadercam.ui.activities.VideoPreviewActivity"
+            android:exported="true"
+            android:theme="@style/shaderCamTheme.NoActionBar">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
         <activity
-            android:name=".activities.CameraColorPickerActivity"
-            android:exported="true">
+            android:name="com.skamz.shadercam.ui.activities.CameraColorPickerActivity"
+            android:exported="true"
+            android:theme="@style/shaderCamTheme.NoActionBar">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />

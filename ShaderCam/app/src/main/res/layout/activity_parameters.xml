@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".activities.ParametersActivity" android:layout_height="match_parent"
+    tools:context=".ui.activities.ParametersActivity" android:layout_height="match_parent"
     android:layout_width="match_parent">
 
     <ScrollView
@@ -78,7 +78,7 @@
                       android:id="@+id/fragment_container_view_tag"
                       android:layout_height="match_parent"
                       android:layout_width="match_parent"
-                      android:name="com.skamz.shadercam.activities.ParametersActivityColorPickerFragmentActivity"
+                      android:name="com.skamz.shadercam.ui.activities.ParametersActivityColorPickerFragmentActivity"
                       tools:layout="@layout/dummy_editor_layout"
                       />
             </LinearLayout>

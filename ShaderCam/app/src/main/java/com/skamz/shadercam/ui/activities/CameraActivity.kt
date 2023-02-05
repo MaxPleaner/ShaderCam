@@ -8,6 +8,7 @@ import android.net.Uri
 import android.opengl.GLES20.*
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.util.Log.*
 import android.view.View
 import android.widget.*
@@ -18,6 +19,7 @@ import androidx.core.view.ViewCompat
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.material.slider.Slider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.ktx.Firebase
@@ -42,6 +44,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.*
+import java.util.*
 
 
 //test
@@ -98,11 +101,23 @@ class CameraActivity : AppCompatActivity() {
         }
 
         findViewById<ImageButton>(R.id.log_in_out).setOnClickListener {
-            GoogleSignIn.getClient(this, LoginFragment.gso(this)).signOut()
-            FirebaseAuth.getInstance().signOut()
-            val intent = Intent(this, OnboardingBaseActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-            startActivity(intent)
+                // Configure Google Sign In
+                val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestIdToken(getString(R.string.default_web_client_id))
+                    .requestEmail()
+                    .build()
+                val mGoogleSignInClient =
+                    GoogleSignIn.getClient(Objects.requireNonNull(this), gso)
+                mGoogleSignInClient.signOut()
+                    .addOnCompleteListener(Objects.requireNonNull(this)) {
+                            FirebaseAuth.getInstance().signOut()
+                        moveNext()
+                        Toast.makeText(this, "Successfully signed out", Toast.LENGTH_SHORT).show()
+
+                        Log.e(TAG, "onComplete: user signed out")
+
+                    }
+
         }
 
         findViewById<ImageButton>(R.id.camera_switch_front_back).setOnClickListener {
@@ -145,6 +160,13 @@ class CameraActivity : AppCompatActivity() {
         camera.addCameraListener(MyCameraListener(this))
 
         setShader(shader)
+    }
+
+    private fun moveNext() {
+        val intent = Intent(this, OnboardingBaseActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+        intent.putExtra("KEEP_VALUES", true)
+        startActivity(intent)
     }
 
     class MyCameraListener(parent: CameraActivity) : CameraListener() {

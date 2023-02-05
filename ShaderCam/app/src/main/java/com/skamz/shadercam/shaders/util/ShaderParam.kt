@@ -21,3 +21,12 @@ data class ColorShaderParam(
     var default: Int,
     override val paramType: String = "color",
 ) : ShaderParam
+
+@kotlinx.serialization.Serializable
+data class TextureShaderParam(
+    override var paramName: String,
+    var default: String?,
+    override val paramType: String = "texture",
+) : ShaderParam
+
+

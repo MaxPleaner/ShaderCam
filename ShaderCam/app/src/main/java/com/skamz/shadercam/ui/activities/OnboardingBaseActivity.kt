@@ -10,13 +10,8 @@ import com.skamz.shadercam.R
 import com.skamz.shadercam.databinding.ActivityOnboardingBaseBinding
 
 class OnboardingBaseActivity : AppCompatActivity() {
-
-    private val TAG = "OnboardingBase"
-
     private var backPressedTime:Long = 0
-
     lateinit var backToast: Toast
-
     private lateinit var binding : ActivityOnboardingBaseBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {

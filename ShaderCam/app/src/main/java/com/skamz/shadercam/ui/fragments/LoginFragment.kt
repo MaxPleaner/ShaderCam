@@ -1,5 +1,6 @@
 package com.skamz.shadercam.ui.fragments
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -23,21 +24,22 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.skamz.shadercam.ui.activities.CameraActivity
 import java.util.*
 
-
 class LoginFragment : Fragment() {
 
     private val TAG = "Login"
-
     private lateinit var binding : FragmentLoginBinding
-
     private lateinit var mAuth: FirebaseAuth
-
     private lateinit var googleSignInClient: GoogleSignInClient
 
     companion object {
         private const val RC_SIGN_IN = 9002
+        fun gso(context: Context): GoogleSignInOptions {
+            return GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(context.getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build()
+        }
     }
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -47,11 +49,7 @@ class LoginFragment : Fragment() {
         binding = DataBindingUtil.inflate(inflater,R.layout.fragment_login, container, false)
 
         // configure google sign in
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(R.string.default_web_client_id))
-            .requestEmail()
-            .build()
-        googleSignInClient = GoogleSignIn.getClient(requireActivity(), gso)
+        googleSignInClient = GoogleSignIn.getClient(requireActivity(), gso(requireActivity()))
 
         //Firebase auth instance
         mAuth = FirebaseAuth.getInstance()
@@ -73,7 +71,6 @@ class LoginFragment : Fragment() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-
             super.onActivityResult(requestCode, resultCode, data)
             if (requestCode == RC_SIGN_IN) {
                 val task: Task<GoogleSignInAccount> =

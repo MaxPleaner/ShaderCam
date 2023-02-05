@@ -8,7 +8,6 @@ import android.net.Uri
 import android.opengl.GLES20.*
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.util.Log.*
 import android.view.View
 import android.widget.*
@@ -29,14 +28,11 @@ import com.otaliastudios.opengl.program.GlShader
 import com.otaliastudios.opengl.surface.EglWindowSurface
 import com.otaliastudios.opengl.texture.GlTexture
 import com.skamz.shadercam.*
+import com.skamz.shadercam.databinding.ActivityCameraBinding
 import com.skamz.shadercam.logic.database.AppDatabase
 import com.skamz.shadercam.logic.database.ShaderDao
-import com.skamz.shadercam.databinding.ActivityCameraBinding
 import com.skamz.shadercam.logic.shaders.camera_view_defaults.NoopShader
-import com.skamz.shadercam.logic.shaders.util.ColorShaderParam
-import com.skamz.shadercam.logic.shaders.util.FloatShaderParam
-import com.skamz.shadercam.logic.shaders.util.GenericShader
-import com.skamz.shadercam.logic.shaders.util.ShaderAttributes
+import com.skamz.shadercam.logic.shaders.util.*
 import com.skamz.shadercam.logic.util.IoUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

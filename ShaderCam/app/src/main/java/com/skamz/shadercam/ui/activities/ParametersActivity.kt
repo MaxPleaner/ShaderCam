@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.activity.result.ActivityResultLauncher
@@ -15,9 +16,11 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
 import com.skamz.shadercam.R
-import com.skamz.shadercam.logic.shaders.util.ColorShaderParam
-import com.skamz.shadercam.logic.shaders.util.FloatShaderParam
-import com.skamz.shadercam.logic.shaders.util.ShaderParam
+import com.skamz.shadercam.logic.shaders.camera_view_defaults.TextureOverlayShaderData
+import com.skamz.shadercam.logic.shaders.util.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Color as ComposeColor
 
 class ParametersActivity : AppCompatActivity() {

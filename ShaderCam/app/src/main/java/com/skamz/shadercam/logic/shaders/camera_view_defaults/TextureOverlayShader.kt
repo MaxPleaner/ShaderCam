@@ -1,6 +1,6 @@
-package com.skamz.shadercam.shaders.camera_view_defaults
+package com.skamz.shadercam.logic.shaders.camera_view_defaults
 
-import com.skamz.shadercam.shaders.util.*
+import com.skamz.shadercam.logic.shaders.util.*
 
 class TextureOverlayShaderData {
     companion object {
@@ -22,5 +22,4 @@ val TextureOverlayShader = ShaderAttributes(
     name = "(Template) Texture Overlay",
     shaderMainText = TextureOverlayShaderData.shaderMainText,
     params = TextureOverlayShaderData.params,
-//    templateParams = TextureOverlayShaderData.params
 )

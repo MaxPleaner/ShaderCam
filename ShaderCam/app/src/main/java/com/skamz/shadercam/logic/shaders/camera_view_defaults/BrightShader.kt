@@ -21,5 +21,4 @@ val BrightShader = ShaderAttributes(
     "(Template) Brightness Adjust",
     BrightShaderData.shaderMainText,
     BrightShaderData.params,
-//    templateParams = BrightShaderData.params
 )

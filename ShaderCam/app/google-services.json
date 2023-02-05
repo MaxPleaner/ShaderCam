@@ -22,7 +22,15 @@
           }
         },
         {
-          "client_id": "225470326967-jrj6mghdka77lniujn2j1douad6uh6t7.apps.googleusercontent.com",
+          "client_id": "225470326967-chn6uo4etqlr5t8pl28681eirliloqe8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.skamz.shadercam",
+            "certificate_hash": "b9cf596b694eb2f051d2b9e36e57d5b5e6f59452"
+          }
+        },
+        {
+          "client_id": "225470326967-cbj401j5vm18515m2g1pvpuqn2ojtce6.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -35,7 +43,7 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "225470326967-jrj6mghdka77lniujn2j1douad6uh6t7.apps.googleusercontent.com",
+              "client_id": "225470326967-cbj401j5vm18515m2g1pvpuqn2ojtce6.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

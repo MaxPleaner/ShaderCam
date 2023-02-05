@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.net.Uri
 import android.opengl.GLES20
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import com.otaliastudios.opengl.core.Egloo
 import com.skamz.shadercam.logic.shaders.camera_view_defaults.TintShader

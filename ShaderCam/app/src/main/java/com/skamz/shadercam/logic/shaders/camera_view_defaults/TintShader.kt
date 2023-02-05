@@ -1,8 +1,8 @@
 package com.skamz.shadercam.logic.shaders.camera_view_defaults
 
 import com.skamz.shadercam.logic.shaders.util.ColorShaderParam
-import com.skamz.shadercam.logic.shaders.util.ShaderAttributes
 import com.skamz.shadercam.logic.shaders.util.ShaderParam
+import com.skamz.shadercam.logic.shaders.util.ShaderAttributes
 
 class TintShaderData {
     companion object {
@@ -22,5 +22,4 @@ val TintShader = ShaderAttributes(
     "(Template) Tint",
     TintShaderData.shaderMainText,
     TintShaderData.params,
-//    templateParams = TintShaderData.params
 )

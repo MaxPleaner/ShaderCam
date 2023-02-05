@@ -1,6 +1,5 @@
-package com.skamz.shadercam.shaders.util
+package com.skamz.shadercam.logic.shaders.util
 
-import android.R
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -11,7 +10,7 @@ import android.opengl.GLException
 import android.opengl.GLUtils
 import android.os.ParcelFileDescriptor
 import android.util.Log
-import com.skamz.shadercam.shaders.camera_view_defaults.TextureOverlayShaderData
+import com.skamz.shadercam.logic.shaders.camera_view_defaults.TextureOverlayShaderData
 import java.io.FileDescriptor
 import java.net.URL
 import javax.microedition.khronos.opengles.GL10

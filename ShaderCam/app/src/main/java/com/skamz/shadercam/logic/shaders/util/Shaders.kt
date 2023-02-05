@@ -15,11 +15,13 @@ class Shaders {
         val noopShader: ShaderAttributes = NoopShader
         val brightShader: ShaderAttributes = BrightShader
         val tintShader: ShaderAttributes = TintShader
+        val textureOverlayShader: ShaderAttributes = TextureOverlayShader
 
         val all: List<ShaderAttributes> = listOf(
             noopShader,
             brightShader,
-            tintShader
+            tintShader,
+            textureOverlayShader
         )
     }
 }

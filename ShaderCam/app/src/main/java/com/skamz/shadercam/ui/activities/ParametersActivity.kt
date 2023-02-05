@@ -1,14 +1,16 @@
 package com.skamz.shadercam.ui.activities
 
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.widget.LinearLayout
-import android.widget.RadioButton
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
@@ -21,14 +23,19 @@ import androidx.compose.ui.graphics.Color as ComposeColor
 class ParametersActivity : AppCompatActivity() {
     private lateinit var floatLayout: LinearLayout
     private lateinit var colorLayout: LinearLayout
+    private lateinit var textureLayout: LinearLayout
 
     private lateinit var colorRB: RadioButton
     private lateinit var floatRB: RadioButton
+    private lateinit var textureRB: RadioButton
 
     private lateinit var nameInput: TextInputEditText
     private lateinit var defaultFloatInput: TextInputEditText
     private lateinit var maxFloatInput: TextInputEditText
     private lateinit var minFloatInput: TextInputEditText
+
+    private lateinit var defaultTextureImage: ImageView
+    private lateinit var defaultTextureUrl: TextInputEditText
 
     private var type: String = "float"
 
@@ -41,9 +48,14 @@ class ParametersActivity : AppCompatActivity() {
     private var defaultColorValueInitial = Color.BLUE
     var defaultColorValue: Int = defaultColorValueInitial
 
+    lateinit var defaultTextureValueInitial: String
+    lateinit var defaultTextureValue: String
+
     private lateinit var cancelBtn: TextView
     private lateinit var saveBtn: TextView
     private lateinit var deleteBtn: TextView
+
+    private lateinit var filePickerLauncher: ActivityResultLauncher<String>
 
     // mode can be "new" or "update" and changes the saving behavior
     private var mode = "new"
@@ -82,6 +94,8 @@ class ParametersActivity : AppCompatActivity() {
             when (param.paramType) {
                 "float" -> setFloatValues(param as FloatShaderParam)
                 "color" -> setColorValues(param as ColorShaderParam)
+                "texture" -> setTextureValues(param as TextureShaderParam)
+                else -> throw Exception("Param type not implemented in ParametersActivity.setupEditMode")
             }
         } else {
             mode = "new"
@@ -104,22 +118,66 @@ class ParametersActivity : AppCompatActivity() {
         ParametersActivityColorPickerFragmentActivity.startingColor = ComposeColor(defaultColorValue)
     }
 
+    private fun setTextureValues(param: TextureShaderParam) {
+        defaultTextureValue = param.default ?: defaultTextureValueInitial
+        showDefaultTextureImage(Uri.parse(defaultTextureValue))
+    }
+
+    private fun updateTextureUriText (uri: Uri) {
+        when (uri.scheme) {
+            "http", "https" -> {
+                defaultTextureUrl.setText(uri.toString())
+            }
+            else -> {
+                defaultTextureUrl.setText("")
+            }
+        }
+    }
+
+    private fun showDefaultTextureImage(uri: Uri) {
+        val context = this
+        when (uri.scheme) {
+            "http", "https", "hardcodedResource" -> {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val bitmap = TextureUtils.bitmapFromUri(context, uri)
+                    runOnUiThread { defaultTextureImage.setImageBitmap(bitmap); }
+                }
+            }
+            else -> {
+                defaultTextureUrl.setText("")
+                defaultTextureImage.setImageURI(Uri.parse(defaultTextureValue))
+            }
+        }
+    }
+
     private fun setType(newType: String) {
+        colorRB.isChecked = false
+        colorLayout.visibility = View.GONE
+
+        textureRB.isChecked = false
+        textureLayout.visibility = View.GONE
+
+        floatRB.isChecked = false
+        floatLayout.visibility = View.GONE
+
         type = newType
+
         when (type) {
             "float" -> {
-                colorRB.isChecked = false
-                colorLayout.visibility = View.GONE
-
                 floatRB.isChecked = true
                 floatLayout.visibility = View.VISIBLE
             }
             "color" -> {
                 colorRB.isChecked = true
                 colorLayout.visibility = View.VISIBLE
-
-                floatRB.isChecked = false
-                floatLayout.visibility = View.GONE
+            }
+            "texture" -> {
+                Log.i("DEBUG", "making texture RB checked")
+                textureRB.isChecked = true
+                textureLayout.visibility = View.VISIBLE
+            }
+            else -> {
+                throw Exception("unimplemented")
             }
         }
     }
@@ -127,9 +185,11 @@ class ParametersActivity : AppCompatActivity() {
     private fun init() {
             colorLayout = findViewById(R.id.colorLayout)
             floatLayout = findViewById(R.id.floatLayout)
+            textureLayout = findViewById(R.id.textureLayout)
 
             colorRB = findViewById(R.id.colorRB)
             floatRB = findViewById(R.id.floatRb)
+            textureRB = findViewById(R.id.textureRB)
 
             nameInput = findViewById(R.id.name_input)
 
@@ -141,8 +201,26 @@ class ParametersActivity : AppCompatActivity() {
             cancelBtn = findViewById(R.id.cancelParameters)
             deleteBtn = findViewById(R.id.deleteParameter)
 
-            setType("float")
+            defaultTextureImage = findViewById(R.id.default_texture_image)
+            defaultTextureUrl = findViewById<TextInputEditText>(R.id.default_texture_url)
+            defaultTextureValueInitial = TextureOverlayShaderData.defaultImageUrl
+            defaultTextureValue = defaultTextureValueInitial
+            showDefaultTextureImage(Uri.parse(defaultTextureValue))
+            updateTextureUriText(Uri.parse(defaultTextureValue))
 
+            filePickerLauncher = registerForActivityResult(FilePickerContract()) { uri ->
+                if (uri != null) {
+                    contentResolver.takePersistableUriPermission(
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                    val publicUri = saveUploadedImage(uri)
+                    defaultTextureValue = publicUri.toString()
+                    showDefaultTextureImage(publicUri)
+                }
+            }
+
+            setType("float")
             setOnClickListeners()
     }
 
@@ -189,9 +267,42 @@ class ParametersActivity : AppCompatActivity() {
         return regex.matches(name)
     }
 
+    private fun saveUploadedImage(uri: Uri): Uri {
+        Toast.makeText(this, "Picked image: ${uri.path}", Toast.LENGTH_SHORT).show()
+        return uri
+    }
+
+    class FilePickerContract : ActivityResultContract<String, Uri?>() {
+        override fun parseResult(resultCode: Int, intent: Intent?): Uri? {
+            if (resultCode != Activity.RESULT_OK) {
+                return null
+            } else {
+                return intent?.data
+            }
+        }
+
+        override fun createIntent(context: Context, input: String): Intent {
+            return Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "image/*"
+            }
+        }
+    }
+
     private fun setOnClickListeners() {
         colorRB.setOnClickListener { toggleParameterType(colorRB) }
         floatRB.setOnClickListener { toggleParameterType(floatRB) }
+        textureRB.setOnClickListener { toggleParameterType(textureRB) }
+
+        findViewById<Button>(R.id.pick_default_texture).setOnClickListener {
+            filePickerLauncher.launch("")
+        }
+
+        findViewById<Button>(R.id.load_default_texture_url).setOnClickListener {
+            val urlString: String = defaultTextureUrl.text.toString()
+            defaultTextureValue = urlString
+            showDefaultTextureImage(Uri.parse(urlString))
+        }
 
         saveBtn.setOnClickListener {
             val err = validateForSave()
@@ -222,6 +333,7 @@ class ParametersActivity : AppCompatActivity() {
 
     private fun save() {
         lateinit var shaderParam: ShaderParam
+        Log.i("DEBUG", "saving ${type}")
         when (type) {
             "float" -> {
                 shaderParam = FloatShaderParam(
@@ -236,6 +348,15 @@ class ParametersActivity : AppCompatActivity() {
                     paramName = nameInput.text.toString(),
                     default = defaultColorValue
                 )
+            }
+            "texture" -> {
+                shaderParam = TextureShaderParam(
+                    paramName = nameInput.text.toString(),
+                    default = defaultTextureValue
+                )
+            }
+            else -> {
+                throw Exception("unimplemented")
             }
         }
         when (mode) {
@@ -265,23 +386,31 @@ class ParametersActivity : AppCompatActivity() {
         maxFloatInput.setText(maxFloatValueInitial.toString())
         minFloatInput.setText(minFloatValueInitial.toString())
         defaultColorValue = defaultColorValueInitial
+        defaultTextureValue = defaultTextureValueInitial
     }
 
     private fun toggleParameterType(view: View) {
         if (view is RadioButton) {
+            floatLayout.visibility = View.GONE
+            colorLayout.visibility = View.GONE
+            textureLayout.visibility = View.GONE
+
             val checked = view.isChecked
             when (view.getId()) {
                 R.id.colorRB ->
                     if (checked) {
                         type = "color"
-                        floatLayout.visibility = View.GONE
                         colorLayout.visibility = View.VISIBLE
                     }
                 R.id.floatRb ->
                     if (checked) {
                         type = "float"
                         floatLayout.visibility = View.VISIBLE
-                        colorLayout.visibility = View.GONE
+                    }
+                R.id.textureRB ->
+                    if (checked) {
+                        type = "texture"
+                        textureLayout.visibility = View.VISIBLE
                     }
             }
         }

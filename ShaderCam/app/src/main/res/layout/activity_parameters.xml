@@ -52,7 +52,15 @@
                     android:text="@string/color"
                     android:checked="false"
                     android:textSize="18sp"/>
+                <RadioButton
+                    android:id="@+id/textureRB"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Texture"
+                    android:checked="false"
+                    android:textSize="18sp"/>
             </RadioGroup>
+
 
              <LinearLayout
                  android:id="@+id/colorLayout"
@@ -73,8 +81,8 @@
                       android:name="com.skamz.shadercam.ui.activities.ParametersActivityColorPickerFragmentActivity"
                       tools:layout="@layout/dummy_editor_layout"
                       />
-
             </LinearLayout>
+
             <LinearLayout
                 android:id="@+id/floatLayout"
                 android:layout_width="match_parent"
@@ -117,8 +125,40 @@
                         android:layout_height="wrap_content"
                         android:hint="Max Value" />
                 </com.google.android.material.textfield.TextInputLayout>
-
             </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/textureLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            android:orientation="vertical">
+            >
+            <Button
+                android:id="@+id/pick_default_texture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pick photo from device"
+                ></Button>
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/default_texture_url"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="http(s) url"
+                ></com.google.android.material.textfield.TextInputEditText>
+            <Button
+                android:id="@+id/load_default_texture_url"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Load from URL"
+                ></Button>
+            <ImageView
+                android:id="@+id/default_texture_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="visible"
+            ></ImageView>
+        </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"

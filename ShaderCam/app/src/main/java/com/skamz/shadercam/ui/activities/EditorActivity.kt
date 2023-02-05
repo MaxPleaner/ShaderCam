@@ -80,7 +80,7 @@ class EditorActivity : AppCompatActivity(){
         if (intent?.getBooleanExtra("KEEP_VALUES", false) != true) {
             shaderTextInput.setText(CameraActivity.shaderAttributes.shaderMainText)
             nameInput.setText(CameraActivity.shaderAttributes.name)
-            parameters = CameraActivity.shaderAttributes.params
+            parameters = CameraActivity.shaderAttributes.params.toMutableList()
         }
         setParametersListText()
     }

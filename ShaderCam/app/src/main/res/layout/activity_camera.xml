@@ -98,8 +98,22 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/camera_switch_front_back"
         android:contentDescription="TODO">
-
     </ImageButton>
+
+    <ImageButton
+        android:id="@+id/log_in_out"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginRight="5dp"
+        android:background="#ffffff"
+        android:padding="0dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/sign_out"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:contentDescription="TODO"></ImageButton>
+
 
     <com.otaliastudios.cameraview.CameraView
         android:id="@+id/camera_view"

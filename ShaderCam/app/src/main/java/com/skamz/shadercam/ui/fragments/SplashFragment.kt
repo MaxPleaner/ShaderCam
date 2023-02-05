@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -19,11 +20,7 @@ import com.skamz.shadercam.ui.activities.CameraActivity
 import com.skamz.shadercam.ui.activities.EditorActivity
 
 class SplashFragment : Fragment() {
-
-    private val TAG = "SplashFragment"
-
     private lateinit var mAuth : FirebaseAuth
-
     private lateinit var binding: FragmentSplashBinding
 
     override fun onCreateView(
@@ -34,23 +31,22 @@ class SplashFragment : Fragment() {
         binding = DataBindingUtil.inflate(inflater,R.layout.fragment_splash, container, false)
 
         mAuth = FirebaseAuth.getInstance()
-
         val user = mAuth.currentUser
 
-        //if user is not signed is directed to the login page but directed to dashboard if signed in
+        // if user is not signed in, they're directed to the login page
+        // Otherwise, they go directly to the dashboard.
+        // The delay here is not required; it's just so they see the landing page for a second.
         Handler(Looper.getMainLooper()).postDelayed({
             lifecycleScope.launchWhenResumed {
                 if (user != null){
                    goToCameraActivity()
-                }else {
+                } else {
                     findNavController().navigate(
                         R.id.action_splashFragment_to_loginFragment
                     )
                 }
             }
-        }, 3000)
-
-        // Inflate the layout for this fragment
+        }, 1500)
 
         return binding.root
     }

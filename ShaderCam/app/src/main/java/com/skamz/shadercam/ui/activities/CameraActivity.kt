@@ -17,7 +17,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.material.slider.Slider
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.ktx.Firebase
 import com.otaliastudios.cameraview.CameraListener
 import com.otaliastudios.cameraview.CameraView
 import com.otaliastudios.cameraview.PictureResult
@@ -34,6 +37,7 @@ import com.skamz.shadercam.logic.database.ShaderDao
 import com.skamz.shadercam.logic.shaders.camera_view_defaults.NoopShader
 import com.skamz.shadercam.logic.shaders.util.*
 import com.skamz.shadercam.logic.util.IoUtil
+import com.skamz.shadercam.ui.fragments.LoginFragment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -89,6 +93,14 @@ class CameraActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.shader_editor_link).setOnClickListener {
             val intent = Intent(this, ShaderSelectActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+            startActivity(intent)
+        }
+
+        findViewById<ImageButton>(R.id.log_in_out).setOnClickListener {
+            GoogleSignIn.getClient(this, LoginFragment.gso(this)).signOut()
+            FirebaseAuth.getInstance().signOut()
+            val intent = Intent(this, OnboardingBaseActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
             startActivity(intent)
         }

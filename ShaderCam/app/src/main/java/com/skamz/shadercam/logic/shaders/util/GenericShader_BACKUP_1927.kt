@@ -5,11 +5,17 @@ import android.graphics.Color
 import android.net.Uri
 import android.opengl.GLES20
 import android.os.Build
+<<<<<<< HEAD:ShaderCam/app/src/main/java/com/skamz/shadercam/logic/shaders/util/GenericShader.kt
 import androidx.annotation.RequiresApi
 import com.otaliastudios.opengl.core.Egloo
 import com.skamz.shadercam.logic.shaders.camera_view_defaults.TintShader
+=======
 import android.util.Log
-import com.skamz.shadercam.shaders.util.ShaderAttributes
+import androidx.annotation.RequiresApi
+import com.otaliastudios.opengl.core.Egloo
+import com.skamz.shadercam.shaders.camera_view_defaults.TintShader
+>>>>>>> master:ShaderCam/app/src/main/java/com/skamz/shadercam/shaders/util/GenericShader.kt
+
 
 class GenericShader() : BaseFilterPatch() {
 

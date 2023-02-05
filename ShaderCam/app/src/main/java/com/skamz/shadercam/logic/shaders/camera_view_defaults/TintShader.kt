@@ -21,5 +21,5 @@ class TintShaderData {
 val TintShader = ShaderAttributes(
     "(Template) Tint",
     TintShaderData.shaderMainText,
-    TintShaderData.params
+    TintShaderData.params,
 )

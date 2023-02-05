@@ -1,8 +1,9 @@
 package com.skamz.shadercam.activities
 
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.media.Image
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -10,14 +11,16 @@ import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
 import com.skamz.shadercam.R
 import com.skamz.shadercam.shaders.camera_view_defaults.TextureOverlayShaderData
 import com.skamz.shadercam.shaders.util.*
-import java.net.URI
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Color as ComposeColor
 
 class ParametersActivity : AppCompatActivity() {
@@ -34,9 +37,8 @@ class ParametersActivity : AppCompatActivity() {
     private lateinit var maxFloatInput: TextInputEditText
     private lateinit var minFloatInput: TextInputEditText
 
-    private lateinit var imagePickerAction: ActivityResultLauncher<String>
-
     private lateinit var defaultTextureImage: ImageView
+    private lateinit var defaultTextureUrl: TextInputEditText
 
     private var type: String = "float"
 
@@ -55,6 +57,8 @@ class ParametersActivity : AppCompatActivity() {
     private lateinit var cancelBtn: TextView
     private lateinit var saveBtn: TextView
     private lateinit var deleteBtn: TextView
+
+    private lateinit var filePickerLauncher: ActivityResultLauncher<String>
 
     // mode can be "new" or "update" and changes the saving behavior
     private var mode = "new"
@@ -119,7 +123,34 @@ class ParametersActivity : AppCompatActivity() {
 
     private fun setTextureValues(param: TextureShaderParam) {
         defaultTextureValue = param.default ?: defaultTextureValueInitial
-        defaultTextureImage.setImageURI(Uri.parse(defaultTextureValue))
+        showDefaultTextureImage(Uri.parse(defaultTextureValue))
+    }
+
+    private fun updateTextureUriText (uri: Uri) {
+        when (uri.scheme) {
+            "http", "https" -> {
+                defaultTextureUrl.setText(uri.toString())
+            }
+            else -> {
+                defaultTextureUrl.setText("")
+            }
+        }
+    }
+
+    private fun showDefaultTextureImage(uri: Uri) {
+        val context = this
+        when (uri.scheme) {
+            "http", "https", "hardcodedResource" -> {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val bitmap = TextureUtils.bitmapFromUri(context, uri)
+                    runOnUiThread { defaultTextureImage.setImageBitmap(bitmap); }
+                }
+            }
+            else -> {
+                defaultTextureUrl.setText("")
+                defaultTextureImage.setImageURI(Uri.parse(defaultTextureValue))
+            }
+        }
     }
 
     private fun setType(newType: String) {
@@ -133,8 +164,6 @@ class ParametersActivity : AppCompatActivity() {
         floatLayout.visibility = View.GONE
 
         type = newType
-
-        Log.i("DEBUG", "making texture RB unchecked")
 
         when (type) {
             "float" -> {
@@ -175,23 +204,26 @@ class ParametersActivity : AppCompatActivity() {
             cancelBtn = findViewById(R.id.cancelParameters)
             deleteBtn = findViewById(R.id.deleteParameter)
 
-            defaultTextureImage = findViewById<ImageView>(R.id.default_texture_image)
-            defaultTextureValueInitial = TextureOverlayShaderData.default
+            defaultTextureImage = findViewById(R.id.default_texture_image)
+            defaultTextureUrl = findViewById<TextInputEditText>(R.id.default_texture_url)
+            defaultTextureValueInitial = TextureOverlayShaderData.defaultImageUrl
             defaultTextureValue = defaultTextureValueInitial
-            defaultTextureImage.setImageURI(Uri.parse(defaultTextureValue))
+            showDefaultTextureImage(Uri.parse(defaultTextureValue))
+            updateTextureUriText(Uri.parse(defaultTextureValue))
 
-            val intent = Intent(Intent.ACTION_PICK)
-            intent.type = "image/*"
-            imagePickerAction = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            filePickerLauncher = registerForActivityResult(FilePickerContract()) { uri ->
                 if (uri != null) {
+                    contentResolver.takePersistableUriPermission(
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
                     val publicUri = saveUploadedImage(uri)
-                    defaultTextureValue = uri.toString()
-                    defaultTextureImage.setImageURI(publicUri)
+                    defaultTextureValue = publicUri.toString()
+                    showDefaultTextureImage(publicUri)
                 }
             }
 
             setType("float")
-
             setOnClickListeners()
     }
 
@@ -243,13 +275,36 @@ class ParametersActivity : AppCompatActivity() {
         return uri
     }
 
+    class FilePickerContract : ActivityResultContract<String, Uri?>() {
+        override fun parseResult(resultCode: Int, intent: Intent?): Uri? {
+            if (resultCode != Activity.RESULT_OK) {
+                return null
+            } else {
+                return intent?.data
+            }
+        }
+
+        override fun createIntent(context: Context, input: String): Intent {
+            return Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "image/*"
+            }
+        }
+    }
+
     private fun setOnClickListeners() {
         colorRB.setOnClickListener { toggleParameterType(colorRB) }
         floatRB.setOnClickListener { toggleParameterType(floatRB) }
         textureRB.setOnClickListener { toggleParameterType(textureRB) }
 
         findViewById<Button>(R.id.pick_default_texture).setOnClickListener {
-            imagePickerAction.launch("image/*")
+            filePickerLauncher.launch("")
+        }
+
+        findViewById<Button>(R.id.load_default_texture_url).setOnClickListener {
+            val urlString: String = defaultTextureUrl.text.toString()
+            defaultTextureValue = urlString
+            showDefaultTextureImage(Uri.parse(urlString))
         }
 
         saveBtn.setOnClickListener {

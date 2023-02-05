@@ -1,6 +1,5 @@
 package com.skamz.shadercam.shaders.camera_view_defaults
 
-import android.graphics.Color
 import com.skamz.shadercam.shaders.util.*
 
 class TextureOverlayShaderData {
@@ -8,20 +7,20 @@ class TextureOverlayShaderData {
         val shaderMainText: String = """
           vec4 color = texture2D(sTexture, vTextureCoord);
           vec4 overlay = texture2D(overlayTexture, vTextureCoord);
-          gl_FragColor = overlay * color;
+          gl_FragColor = color - (overlay * amt);
         """.trimIndent()
-
-        // Set in CameraActivity.onCreate because it needs to use context to build a Uri string
-        lateinit var default: String
+        val defaultImageUrl = TextureUtils.resourceIdToUri("R.drawable.noise_texture").toString()
 
         val params: MutableList<ShaderParam> = mutableListOf(
-            TextureShaderParam("overlayTexture", null)
+            TextureShaderParam("overlayTexture", defaultImageUrl),
+            FloatShaderParam("amt", 0.75f, 0.0f, 1.0f)
         )
     }
 }
 
 val TextureOverlayShader = ShaderAttributes(
-    "(Template) Texture Overlay",
-    TextureOverlayShaderData.shaderMainText,
-    TextureOverlayShaderData.params
+    name = "(Template) Texture Overlay",
+    shaderMainText = TextureOverlayShaderData.shaderMainText,
+    params = TextureOverlayShaderData.params,
+//    templateParams = TextureOverlayShaderData.params
 )

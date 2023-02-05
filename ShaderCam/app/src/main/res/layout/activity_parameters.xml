@@ -131,14 +131,26 @@
             android:id="@+id/textureLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:visibility="gone"
+            android:visibility="visible"
             android:orientation="vertical">
             >
             <Button
                 android:id="@+id/pick_default_texture"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Choose Image For Default Value"
+                android:text="Pick photo from device"
+                ></Button>
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/default_texture_url"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="http(s) url"
+                ></com.google.android.material.textfield.TextInputEditText>
+            <Button
+                android:id="@+id/load_default_texture_url"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Load from URL"
                 ></Button>
             <ImageView
                 android:id="@+id/default_texture_image"

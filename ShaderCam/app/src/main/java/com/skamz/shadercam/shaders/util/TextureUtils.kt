@@ -1,6 +1,6 @@
 package com.skamz.shadercam.shaders.util
 
-import android.content.ContentResolver
+import android.R
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -9,8 +9,13 @@ import android.opengl.GLES11Ext
 import android.opengl.GLES31
 import android.opengl.GLException
 import android.opengl.GLUtils
-import androidx.annotation.RawRes
+import android.os.ParcelFileDescriptor
+import android.util.Log
+import com.skamz.shadercam.shaders.camera_view_defaults.TextureOverlayShaderData
+import java.io.FileDescriptor
+import java.net.URL
 import javax.microedition.khronos.opengles.GL10
+
 
 ///////////////////////////////////////////////////////////////////////////
 // Functions extracted from WizardCamera library. Credit where it's due. //
@@ -20,14 +25,47 @@ class TextureUtils {
 
     companion object {
 
-        fun resourceIdToUri(context: Context, resourceId: Int): Uri {
-            val resources = context.resources
-            return Uri.Builder()
-                .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
-                .authority(resources.getResourcePackageName(resourceId))
-                .appendPath(resources.getResourceTypeName(resourceId))
-                .appendPath(resources.getResourceEntryName(resourceId))
-                .build()
+        // There are various answers on the internet for how to do this,
+        // but I found it difficult to load the Bitmap from them.
+        // So, this just uses a custom solution in conjunction with .getIdentifier()
+        // Basically, we store the identifier as a string and prepend a custom protocol ..
+        // see bitmapFromUri for how it's parsed.
+        fun resourceIdToUri(resourcePath: String): Uri {
+            return Uri.parse("hardcodedResource://${resourcePath}")
+        }
+
+        fun bitmapFromUri(context: Context, uri: Uri): Bitmap {
+            when (uri.scheme) {
+                "content" -> {
+                    val parcelFileDescriptor: ParcelFileDescriptor =
+                        context.contentResolver.openFileDescriptor(uri, "r")
+                            ?: return bitmapFromUri(context, Uri.parse(TextureOverlayShaderData.defaultImageUrl))
+                    val fileDescriptor: FileDescriptor = parcelFileDescriptor.fileDescriptor
+                    val image: Bitmap = BitmapFactory.decodeFileDescriptor(fileDescriptor)
+                    parcelFileDescriptor.close()
+                    return image
+                }
+                "http", "https" -> {
+                    return bitmapFromHttpUri(uri)
+                }
+                "hardcodedResource" -> {
+                    val uriString = uri.toString().replace("hardcodedResource://", "")
+                    val components = uriString.split(".")
+                    val type = components[1]!!
+                    val resourceName = components[2]!!
+                    val id = context.resources.getIdentifier(resourceName, type, context.packageName)
+                    return BitmapFactory.decodeResource(context.resources, id)
+                }
+                else -> {
+                    Log.e("DEBUG", "UNHANDLED SCHEME ${uri.scheme}")
+                    throw Exception("unhandled scheme ${uri.scheme}")
+                }
+            }
+        }
+
+        fun bitmapFromHttpUri(uri: Uri): Bitmap {
+            var url = URL(uri.toString())
+            return BitmapFactory.decodeStream(url.openConnection().getInputStream())
         }
 
         /**
@@ -40,12 +78,17 @@ class TextureUtils {
             context: Context,
             channelName: String,
             channelIdx: Int,
-            bmp: Bitmap,
+            uri: Uri,
             program: Int
         ) {
-            val textureId = loadTexture(context, bmp, IntArray(2))
+//            val textureId = loadTexture(context, IntArray(2))
+            val bmp = bitmapFromUri(context, uri)
+            val textureId = loadTexture(bmp, IntArray(2))
+//            Log.e("DEBUG", "textureId: ${textureId}")
+//            bmp.recycle() // Recycle the bitmap, since its data has been loaded into OpenGL.
 
             val sTextureLocation = GLES31.glGetUniformLocation(program, channelName)
+//            Log.e("DEBUG", "sTextureLocation: ${sTextureLocation}")
             GLES31.glActiveTexture(GLES31.GL_TEXTURE0 + channelIdx)
             GLES31.glBindTexture(GLES31.GL_TEXTURE_2D, textureId)
             GLES31.glUniform1i(sTextureLocation, 1)
@@ -107,33 +150,39 @@ class TextureUtils {
         /**
          * Load a bitmap resource into a texture
          */
-        fun loadTexture(context: Context, bmp: Bitmap, size: IntArray): Int {
+        fun loadTexture(
+//            bmp: Bitmap,
+            bitmap: Bitmap,
+            size: IntArray
+        ): Int {
+//            val texId = createTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES)
             val texId = createTexture(GLES31.GL_TEXTURE_2D)
 
             if (texId == 0) {
                 throw GLException(0, "Can't create texture!")
             }
 
-            // Decode bounds
-            //        val options = BitmapFactory.Options()
-            //        options.inScaled = false
-            //        options.inJustDecodeBounds = true
-            //
-            //        BitmapFactory.decodeResource(context.resources, resourceId, options)
-            //
-            //        // Set return size
-            //        size[0] = options.outWidth
-            //        size[1] = options.outHeight
-            //
-            //        // Decode
-            //        options.inJustDecodeBounds = false
-            //        val bitmap = BitmapFactory.decodeResource(context.resources, resourceId, options)
+//            val resourceId = com.skamz.shadercam.R.drawable.noise_texture
+////            val resourceId = com.skamz.shadercam.R.raw.noise_texture;
+//            // Decode bounds
+//                    val options = BitmapFactory.Options()
+//                    options.inScaled = false
+//                    options.inJustDecodeBounds = true
+//            //
+//                    BitmapFactory.decodeResource(context.resources, resourceId, options)
+//            //
+//            //        // Set return size
+//                    size[0] = options.outWidth
+//                    size[1] = options.outHeight
+//            //
+//            //        // Decode
+//                    options.inJustDecodeBounds = false
+//                    val bitmap = BitmapFactory.decodeResource(context.resources, resourceId, options)
 
             // Load the bitmap into the bound texture.
-            GLUtils.texImage2D(GLES31.GL_TEXTURE_2D, 0, bmp, 0)
+            GLUtils.texImage2D(GLES31.GL_TEXTURE_2D, 0, bitmap, 0)
 
-            // Recycle the bitmap, since its data has been loaded into OpenGL.
-            bmp.recycle()
+            bitmap.recycle()
 
             return texId
         }

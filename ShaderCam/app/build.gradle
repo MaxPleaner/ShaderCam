@@ -47,6 +47,7 @@ dependencies {
     api("com.otaliastudios:cameraview:2.7.2")
 
     implementation("androidx.room:room-runtime:2.5.0")
+    implementation 'com.google.firebase:firebase-annotations:16.1.0'
     kapt("androidx.room:room-compiler:2.5.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")

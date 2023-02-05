@@ -8,6 +8,7 @@ import android.net.Uri
 import android.opengl.GLES20.*
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.util.Log.*
 import android.view.View
 import android.widget.*
@@ -36,6 +37,9 @@ import com.skamz.shadercam.shaders.camera_view_defaults.TextureOverlayShader
 import com.skamz.shadercam.shaders.camera_view_defaults.TextureOverlayShaderData
 import com.skamz.shadercam.shaders.util.*
 import com.skamz.shadercam.util.IoUtil
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.*
 
 
@@ -72,10 +76,6 @@ class CameraActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityCameraBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
-
-        TextureOverlayShaderData.default = TextureUtils.resourceIdToUri(this, R.drawable.noise_texture).toString()
-        (TextureOverlayShader.params[0] as TextureShaderParam).default = TextureOverlayShaderData.default
-
 
         db = Room.databaseBuilder(
             applicationContext,
@@ -171,20 +171,14 @@ class CameraActivity : AppCompatActivity() {
         val updatedColorName = intent?.getStringExtra("UPDATED_COLOR_NAME")
         if (updatedColorName != null) {
             val updatedColorValue = intent!!.getIntExtra("UPDATED_COLOR_VALUE", Color.BLACK)
-            updateColorShaderParam(updatedColorName, updatedColorValue!!)
+            updateShaderParam(updatedColorName, updatedColorValue!!)
             setShader(shader) // TODO: don't really need to rebuild the whole shader here.
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun updateFloatShaderParam(paramName: String, num: Float) {
-        shader.dataValues[paramName] = num
-        updateShaderText()
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun updateColorShaderParam(paramName: String, color: Int) {
-        shader.dataValues[paramName] = color
+    private fun updateShaderParam(paramName: String, value: Any) {
+        shader.setValue(paramName, value)
         updateShaderText()
     }
 
@@ -216,10 +210,15 @@ class CameraActivity : AppCompatActivity() {
                         "${color.red().format(2)}, ${color.green().format(2)}, ${color.blue().format(2)}"
                     }
                     "texture" -> {
-                        if (shaderVal == null) {
-                            
+                        val uriString = if (shaderVal == null) {
+                            (shaderParam as TextureShaderParam).default!!
+                        } else {
+                            shaderVal as String
                         }
-                        (shaderParam as TextureShaderParam).default ?: "default noise texture"
+                        val scheme = Uri.parse(uriString).scheme ?: "unknown scheme"
+                        "${uriString.split("/").last()} (${scheme})"
+//                        uriString
+//                        uriString.split("/").last()
                     }
                     else -> {
                         throw Exception("param type not handled in CameraActivity.updateShaderText")
@@ -262,6 +261,7 @@ class CameraActivity : AppCompatActivity() {
 
     private fun useFallbackShader() {
         GenericShader.shaderAttributes = NoopShader
+        GenericShader.context = this
         camera.filter = GenericShader()
     }
 
@@ -286,6 +286,7 @@ class CameraActivity : AppCompatActivity() {
         shaderHasError = false
         shaderErrorMsg = null
 
+        GenericShader.context = this
         camera.filter = shader
 
         val uiContainer = findViewById<LinearLayout>(R.id.dynamic_ui)
@@ -309,7 +310,7 @@ class CameraActivity : AppCompatActivity() {
 
                     slider.addOnChangeListener { _, value, _ ->
                         val remappedVal = fit(value, 0.0f,1.0f, shaderParam.min, shaderParam.max)
-                        updateFloatShaderParam(it.paramName, remappedVal)
+                        updateShaderParam(it.paramName, remappedVal)
                     }
                 }
                 "color" -> {
@@ -339,7 +340,22 @@ class CameraActivity : AppCompatActivity() {
 
                     val imageView = inflatedView.findViewById<ImageView>(R.id.param_texture_preview)
                     val imageUriString = (shader.dataValues[shaderParam.paramName] ?: shaderParam.default) as String
-                    imageView.setImageURI(Uri.parse(imageUriString))
+
+                    val uri = Uri.parse(imageUriString)
+                    val context = this
+                    when (uri.scheme) {
+                        "http", "https", "hardcodedResource" -> {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                val bmp = TextureUtils.bitmapFromUri(context, uri)
+                                runOnUiThread { imageView.setImageBitmap(bmp) }
+                            }
+                        }
+                        else -> {
+                            // It's likely a Uri from the user's photo gallery,
+                            // which works fine to load from Uri (without parsing bitmap)
+                            imageView.setImageURI(uri)
+                        }
+                    }
 
                     imageView.setOnClickListener {
                         throw Exception("Unhandled")

@@ -1,15 +1,13 @@
 package com.skamz.shadercam.shaders.util
 
+import android.content.Context
 import android.graphics.Color
+import android.net.Uri
 import android.opengl.GLES20
-import android.opengl.GLES31
 import android.os.Build
-import android.os.Bundle
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.otaliastudios.opengl.core.Egloo
-import com.skamz.shadercam.shaders.camera_view_defaults.BrightShader
-import com.skamz.shadercam.shaders.camera_view_defaults.NoopShader
 import com.skamz.shadercam.shaders.camera_view_defaults.TintShader
 
 
@@ -17,6 +15,7 @@ class GenericShader() : BaseFilterPatch() {
 
     var dataValues: MutableMap<String, Any?> = mutableMapOf()
     var dataLocations: MutableMap<String, Int> = mutableMapOf()
+    var updatedValues: MutableMap<String, Boolean> = mutableMapOf()
 
     var name: String = shaderAttributes.name
     var shaderMainText: String = shaderAttributes.shaderMainText
@@ -24,6 +23,13 @@ class GenericShader() : BaseFilterPatch() {
 
     companion object {
         var shaderAttributes: ShaderAttributes = TintShader
+        lateinit var context: Context
+        var programHandle: Int = 0
+    }
+
+    fun setValue(key: String, value: Any?) {
+        dataValues[key] = value
+        updatedValues[key] = true
     }
 
     override fun getFragmentShader(): String {
@@ -45,7 +51,7 @@ class GenericShader() : BaseFilterPatch() {
             val type = when (it.paramType) {
                 "float" -> "float"
                 "color" -> "vec3"
-                "texture" -> "samplerExternalOES"
+                "texture" -> "sampler2D"
                 else -> {
                     throw Exception("param type not handled in GenericShader.buildUniformsList")
                 }
@@ -74,15 +80,19 @@ class GenericShader() : BaseFilterPatch() {
         }
     }
 
-    override fun onCreate(programHandle: Int) {
-        super.onCreate(programHandle)
+    override fun onCreate(newProgramHandle: Int) {
+        super.onCreate(newProgramHandle)
+
+        programHandle = newProgramHandle
 
         name = shaderAttributes.name
         shaderMainText = shaderAttributes.shaderMainText
-        params = shaderAttributes.params
+        Log.e("DEBUG", "setting attributes: ${shaderAttributes.params}")
+        params = shaderAttributes.params.toMutableList()
 
         params.forEach {
-            dataLocations[it.paramName] = GLES20.glGetUniformLocation(programHandle, it.paramName)
+            dataLocations[it.paramName] = GLES20.glGetUniformLocation(newProgramHandle, it.paramName)
+            updatedValues[it.paramName] = true
             if (dataValues[it.paramName] == null) {
                 val paramVal = when (it.paramType) {
                     "float" -> (it as FloatShaderParam).default
@@ -109,6 +119,9 @@ class GenericShader() : BaseFilterPatch() {
     override fun onPreDraw(timestampUs: Long, transformMatrix: FloatArray) {
         super.onPreDraw(timestampUs, transformMatrix)
         params.forEach {
+            if (updatedValues[it.paramName] != true) { return@forEach }
+            updatedValues[it.paramName] = false
+
             when (it.paramType) {
                 "float" -> {
                     val value = dataValues[it.paramName]!! as Float
@@ -127,6 +140,14 @@ class GenericShader() : BaseFilterPatch() {
                 "texture" -> {
 //                    throw Exception("need to implement texture handler in GenericShader.onPreDraw")
                     // TODO: Call functions in TextureUtils
+                    val param = it as TextureShaderParam
+                    TextureUtils.setTextureParam(
+                        context,
+                        param.paramName,
+                        1,
+                        Uri.parse(param.default),
+                        programHandle
+                    )
                 }
                 else -> {
                     throw Exception("Unknown type")
@@ -137,10 +158,3 @@ class GenericShader() : BaseFilterPatch() {
         }
     }
 }
-//
-//val textureId = loadTexture(settings.texture)
-//
-//val sTextureLocation = GLES31.glGetUniformLocation(program, "iChannel1")
-//GLES31.glActiveTexture(GLES31.GL_TEXTURE0 + 1)
-//GLES31.glBindTexture(GLES31.GL_TEXTURE_2D, textureId)
-//GLES31.glUniform1i(sTextureLocation, 1)

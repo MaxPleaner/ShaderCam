@@ -87,7 +87,7 @@ class GenericShader() : BaseFilterPatch() {
 
         name = shaderAttributes.name
         shaderMainText = shaderAttributes.shaderMainText
-        Log.e("DEBUG", "setting attributes: ${shaderAttributes.params}")
+//        Log.e("DEBUG", "setting attributes: ${shaderAttributes.params}")
         params = shaderAttributes.params.toMutableList()
 
         params.forEach {

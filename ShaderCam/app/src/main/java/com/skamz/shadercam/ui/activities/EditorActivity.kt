@@ -1,15 +1,18 @@
 package com.skamz.shadercam.ui.activities
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.graphics.Paint
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.auth.FirebaseAuth
 import com.skamz.shadercam.R
 import com.skamz.shadercam.logic.database.Shader
 import com.skamz.shadercam.logic.shaders.util.ShaderAttributes
@@ -42,14 +45,7 @@ class EditorActivity : AppCompatActivity(){
         CameraActivity.shaderAttributes = shaderAttributes
     }
 
-    private fun saveShader(callback: (() -> Unit)? = null) {
-        // TODO: Validate shader and show errors.
-        val name = nameInput.text.toString()
-        val shaderMainText = shaderTextInput.text.toString()
-        val shaderAttributes = ShaderAttributes(name, shaderMainText, parameters)
-
-        CameraActivity.shaderAttributes = shaderAttributes
-        val context = this
+    private fun performSaveCoroutine(name: String, shaderMainText: String, context: Context, callback: (() -> Unit)? = null) {
         CoroutineScope(Dispatchers.IO).launch {
             var record = CameraActivity.shaderDao.findByName(name)
             if (record == null) {
@@ -63,11 +59,32 @@ class EditorActivity : AppCompatActivity(){
 
                 CameraActivity.shaderDao.update(record)
             }
-            runOnUiThread { Toast.makeText( context, "Saved", Toast.LENGTH_SHORT).show() }
+
+            runOnUiThread { Toast.makeText(context, "Saved", Toast.LENGTH_SHORT).show() }
             if (callback != null) {
-                // NOTE: The callback will execute in the background thread.
                 callback()
             }
+        }
+    }
+
+    private fun saveShader(callback: (() -> Unit)? = null) {
+        // TODO: Validate shader and show errors.
+        val name = nameInput.text.toString()
+        val shaderMainText = shaderTextInput.text.toString()
+        val shaderAttributes = ShaderAttributes(name, shaderMainText, parameters)
+
+        CameraActivity.shaderAttributes = shaderAttributes
+        if (FirebaseAuth.getInstance().currentUser == null) {
+            AlertDialog.Builder(this)
+                .setTitle("Not logged in")
+                .setMessage("Without logging in, shaders will be saved to your device only.")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    performSaveCoroutine(name, shaderMainText, this, callback)
+                }
+                .setNegativeButton(android.R.string.cancel, null).show()
+        } else {
+            performSaveCoroutine(name, shaderMainText, this, callback)
         }
     }
 
@@ -173,7 +190,18 @@ class EditorActivity : AppCompatActivity(){
         }
     }
 
+    private fun invalidShaderName (): Boolean {
+        // shader names cannot contain . # $ [ ] because of Firebase path rules.
+        return nameInput.text.toString().matches(Regex("[.#\$\\[\\]]"))
+    }
+
     private fun saveButtonOnClick() {
+        if (invalidShaderName()) {
+            val msg = """
+                Shader names cannot contain the characters . # $ [ ]
+            """.trimIndent()
+            return Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        }
         if (isTemplateShader()) {
             val msg = """
                     Template shaders cannot be altered.

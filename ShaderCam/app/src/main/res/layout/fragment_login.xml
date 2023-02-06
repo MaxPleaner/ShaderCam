@@ -8,13 +8,14 @@
         android:layout_height="match_parent">
 
         <LinearLayout
-            android:id="@+id/logout_section"
+            android:id="@+id/logged_in_section"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
+            android:gravity="top"
             android:orientation="vertical"
-            android:layout_gravity="center"
+            android:layout_gravity="top"
             android:visibility="gone"
+            android:layout_marginTop="20dp"
             >
 
             <TextView
@@ -23,38 +24,55 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
                 android:layout_marginRight="10dp"
-                android:textSize="18sp"
+                android:textSize="24sp"
                 android:text="Logged in as (User)"
                 />
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/set_username_warning"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/logoutButton"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/text_input"
-                android:layout_marginStart="30dp"
-                android:layout_marginEnd="30dp"
-                android:gravity="center"
-                android:orientation="horizontal">
+                android:layout_margin="10dp"
+                android:textSize="20sp"
+                android:visibility="gone"
+                android:text="IMPORTANT! Your email will be used as your public username unless you enter one here."
+                ></TextView>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Log out"
-                    android:textStyle="normal"
-                    android:textSize="18sp"
-                    android:textColor="@color/black"/>
-            </LinearLayout>
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/username_input"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="Enter username"
+                ></com.google.android.material.textfield.TextInputEditText>
+
+            <Button
+                android:id="@+id/set_username_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Set Username"
+                android:layout_marginBottom="20dp"
+                ></Button>
+
+            <Button
+                android:id="@+id/logoutButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/red"
+                android:textColor="@color/black"
+                android:text="Log Out"
+                ></Button>
+
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/login_section"
+            android:id="@+id/logged_out_section"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
+            android:gravity="top"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="40dp"
             android:orientation="vertical"
-            android:layout_gravity="center"
+            android:layout_gravity="top"
             android:visibility="gone"
             >
 
@@ -64,7 +82,7 @@
                 android:layout_marginLeft="10dp"
                 android:layout_marginRight="10dp"
                 android:textSize="18sp"
-                android:text="Log in to save your shaders to the cloud or share them with other users! Without logging in, your shaders are saved to your device only."
+                android:text="Log in to save your shaders to the cloud or share them with other users! Without logging in, your shaders are saved to your device only. (Note, email addresses are never shared publicly as long as you set a username after login)."
                  />
 
             <LinearLayout

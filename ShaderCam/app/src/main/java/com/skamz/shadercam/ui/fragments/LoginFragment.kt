@@ -22,6 +22,7 @@ import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.messaging.FirebaseMessaging
+import com.skamz.shadercam.logic.database.FirebaseUserDao
 import com.skamz.shadercam.ui.activities.CameraActivity
 import java.util.*
 
@@ -60,25 +61,60 @@ class LoginFragment : Fragment() {
     }
 
     private fun updateLoginState() {
+        Log.e("DEBUG", "UPDATED LOGIN STATE")
         val currentUser = mAuth.currentUser
         if (currentUser != null) {
-            binding.loginSection.visibility = View.GONE
-            binding.logoutSection.visibility = View.VISIBLE
-            binding.currentUserInfo.text = "Logged in as\n${currentUser.email}"
+            binding.loggedOutSection.visibility = View.GONE
+            binding.loggedInSection.visibility = View.VISIBLE
+            FirebaseUserDao.getUserInfo(currentUser.uid) {
+                if (it?.get("name") == null) {
+                    Log.e("DEBUG", "NO USERNAME")
+                    binding.currentUserInfo.text = "Logged in as\n${currentUser.email}"
+                    binding.setUsernameWarning.visibility = View.VISIBLE
+                    binding.setUsernameButton.text = "Set Username"
+                } else {
+                    Log.e("DEBUG", "YES USERNAME")
+                    binding.currentUserInfo.text = "Logged in as\n${it.get("name")}"
+                    binding.setUsernameWarning.visibility = View.GONE
+                    binding.usernameInput.setText(it["name"])
+                    binding.setUsernameButton.text = "Change Username"
+                }
+            }
         } else {
-            binding.loginSection.visibility = View.VISIBLE
-            binding.logoutSection.visibility = View.GONE
+            binding.loggedOutSection.visibility = View.VISIBLE
+            binding.loggedInSection.visibility = View.GONE
         }
     }
 
     private fun setOnClickListeners() {
         binding.loginButton.setOnClickListener {
             signIn()
-            Toast.makeText(requireActivity(), "Logged in", Toast.LENGTH_SHORT).show()
         }
         binding.logoutButton.setOnClickListener {
             signOut()
             Toast.makeText(requireActivity(), "Logged out", Toast.LENGTH_SHORT).show()
+        }
+        binding.setUsernameButton.setOnClickListener {
+            val username = binding.usernameInput.text.toString()
+            Log.e("DEBUG", "Starting username flow: $username")
+            ensureValidUsername(username) {
+                FirebaseUserDao.updateUserInfo(username)
+                updateLoginState()
+                Toast.makeText(requireActivity(), "Saved username", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun ensureValidUsername(username: String, callback: () -> Unit)   {
+        if (username.isEmpty()) {
+            Log.e("DEBUG", "username empty!")
+            return Toast.makeText(requireActivity(), "Username cant be empty", Toast.LENGTH_SHORT).show()
+        }
+        FirebaseUserDao.usernameAlreadyTaken(username) {
+            Log.e("DEBUG", "username taken? $it")
+            if (it) {
+                Toast.makeText(requireActivity(), "Username is taken", Toast.LENGTH_SHORT).show()
+            } else { callback() }
         }
     }
 
@@ -121,10 +157,11 @@ class LoginFragment : Fragment() {
                             FirebaseMessaging.getInstance().token
                                 .addOnCompleteListener { fcmTask: Task<String> ->
                                     if (task.isSuccessful) {
-                                        // Get new FCM registration token
+                                        FirebaseUserDao.updateUserInfo()
                                         updateLoginState()
-                                        val token = fcmTask.result
-                                        Log.e(TAG, "fcm token: $token")
+                                        // Get new FCM registration token
+//                                        val token = fcmTask.result
+//                                        Log.e(TAG, "fcm token: $token")
                                     } else {
                                         Log.e(TAG, "could not get token")
                                     }

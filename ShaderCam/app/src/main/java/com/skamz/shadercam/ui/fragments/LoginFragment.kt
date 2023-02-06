@@ -2,6 +2,7 @@ package com.skamz.shadercam.ui.fragments
 
 import android.content.Context
 import android.content.Intent
+import android.opengl.Visibility
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -33,12 +34,6 @@ class LoginFragment : Fragment() {
 
     companion object {
         private const val RC_SIGN_IN = 9002
-        fun gso(context: Context): GoogleSignInOptions {
-            return GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(context.getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build()
-        }
     }
 
     override fun onCreateView(
@@ -49,20 +44,50 @@ class LoginFragment : Fragment() {
         binding = DataBindingUtil.inflate(inflater,R.layout.fragment_login, container, false)
 
         // configure google sign in
-        googleSignInClient = GoogleSignIn.getClient(requireActivity(), gso(requireActivity()))
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(requireContext().getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+        googleSignInClient = GoogleSignIn.getClient(requireActivity(), gso)
 
         //Firebase auth instance
         mAuth = FirebaseAuth.getInstance()
+        updateLoginState()
 
-        setOnClickListener()
+        setOnClickListeners()
 
         return binding.root
     }
 
-    private fun setOnClickListener() {
+    private fun updateLoginState() {
+        val currentUser = mAuth.currentUser
+        if (currentUser != null) {
+            binding.loginSection.visibility = View.GONE
+            binding.logoutSection.visibility = View.VISIBLE
+            binding.currentUserInfo.text = "Logged in as\n${currentUser.email}"
+        } else {
+            binding.loginSection.visibility = View.VISIBLE
+            binding.logoutSection.visibility = View.GONE
+        }
+    }
+
+    private fun setOnClickListeners() {
         binding.loginButton.setOnClickListener {
             signIn()
+            Toast.makeText(requireActivity(), "Logged in", Toast.LENGTH_SHORT).show()
         }
+        binding.logoutButton.setOnClickListener {
+            signOut()
+            Toast.makeText(requireActivity(), "Logged out", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun signOut() {
+        googleSignInClient.signOut()
+            .addOnCompleteListener(requireActivity()) {
+                FirebaseAuth.getInstance().signOut()
+                updateLoginState()
+            }
     }
 
     private fun signIn() {
@@ -82,7 +107,6 @@ class LoginFragment : Fragment() {
             } else {
                 Toast.makeText(activity,getString(R.string.something_went_wrong),Toast.LENGTH_SHORT).show()
             }
-
     }
 
 
@@ -98,21 +122,13 @@ class LoginFragment : Fragment() {
                                 .addOnCompleteListener { fcmTask: Task<String> ->
                                     if (task.isSuccessful) {
                                         // Get new FCM registration token
-                                        moveNext()
+                                        updateLoginState()
                                         val token = fcmTask.result
-                                        Log.e(
-                                            TAG,
-                                            "fcm token: $token"
-                                        )
+                                        Log.e(TAG, "fcm token: $token")
                                     } else {
-                                        Log.e(
-                                            TAG,
-                                            "could not get token"
-                                        )
-
+                                        Log.e(TAG, "could not get token")
                                     }
                                 }
-                            // moveToHome()
                             Log.e(TAG, "signInWithCredential:success")
                         } else {
                             //if sign in fails
@@ -125,14 +141,5 @@ class LoginFragment : Fragment() {
         } catch (e: Exception) {
             Toast.makeText(activity,getString(R.string.something_went_wrong),Toast.LENGTH_SHORT).show()
         }
-
     }
-
-    private fun moveNext() {
-        val intent = Intent(requireActivity(), CameraActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-        intent.putExtra("KEEP_VALUES", true)
-        startActivity(intent)
-    }
-
 }

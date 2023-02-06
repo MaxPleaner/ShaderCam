@@ -18,6 +18,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.skamz.shadercam.R
 import com.skamz.shadercam.logic.shaders.camera_view_defaults.TextureOverlayShaderData
 import com.skamz.shadercam.logic.shaders.util.*
+import com.skamz.shadercam.ui.fragments.ParametersActivityColorPickerFragmentActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

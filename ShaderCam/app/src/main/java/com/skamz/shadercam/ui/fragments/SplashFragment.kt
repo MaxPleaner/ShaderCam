@@ -31,22 +31,22 @@ class SplashFragment : Fragment() {
         binding = DataBindingUtil.inflate(inflater,R.layout.fragment_splash, container, false)
 
         mAuth = FirebaseAuth.getInstance()
-        val user = mAuth.currentUser
+//        val user = mAuth.currentUser
 
         // if user is not signed in, they're directed to the login page
         // Otherwise, they go directly to the dashboard.
         // The delay here is not required; it's just so they see the landing page for a second.
-        Handler(Looper.getMainLooper()).postDelayed({
-            lifecycleScope.launchWhenResumed {
-                if (user != null){
-                   goToCameraActivity()
-                } else {
-                    findNavController().navigate(
-                        R.id.action_splashFragment_to_loginFragment
-                    )
-                }
-            }
-        }, 1500)
+//        Handler(Looper.getMainLooper()).postDelayed({
+        lifecycleScope.launchWhenResumed {
+//                if (user != null){
+//                   goToCameraActivity()
+//                } else {
+                findNavController().navigate(
+                    R.id.action_splashFragment_to_loginFragment
+                )
+//                }
+        }
+//        }, 1500)
 
         return binding.root
     }
@@ -57,5 +57,4 @@ class SplashFragment : Fragment() {
         intent.putExtra("KEEP_VALUES", true)
         startActivity(intent)
     }
-
 }

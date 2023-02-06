@@ -101,23 +101,10 @@ class CameraActivity : AppCompatActivity() {
         }
 
         findViewById<ImageButton>(R.id.log_in_out).setOnClickListener {
-                // Configure Google Sign In
-                val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestIdToken(getString(R.string.default_web_client_id))
-                    .requestEmail()
-                    .build()
-                val mGoogleSignInClient =
-                    GoogleSignIn.getClient(Objects.requireNonNull(this), gso)
-                mGoogleSignInClient.signOut()
-                    .addOnCompleteListener(Objects.requireNonNull(this)) {
-                            FirebaseAuth.getInstance().signOut()
-                        moveNext()
-                        Toast.makeText(this, "Successfully signed out", Toast.LENGTH_SHORT).show()
-
-                        Log.e(TAG, "onComplete: user signed out")
-
-                    }
-
+            val intent = Intent(this, OnboardingBaseActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+            intent.putExtra("KEEP_VALUES", true)
+            startActivity(intent)
         }
 
         findViewById<ImageButton>(R.id.camera_switch_front_back).setOnClickListener {
@@ -160,13 +147,6 @@ class CameraActivity : AppCompatActivity() {
         camera.addCameraListener(MyCameraListener(this))
 
         setShader(shader)
-    }
-
-    private fun moveNext() {
-        val intent = Intent(this, OnboardingBaseActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-        intent.putExtra("KEEP_VALUES", true)
-        startActivity(intent)
     }
 
     class MyCameraListener(parent: CameraActivity) : CameraListener() {

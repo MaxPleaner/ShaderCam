@@ -32,6 +32,7 @@ class EditorActivity : AppCompatActivity(){
     private lateinit var nameInput: TextInputEditText
     private lateinit var addParameterBtn: TextView
     private lateinit var parametersListView: ListView
+    private var isPublic: Boolean = false
 
     companion object {
         var parameters: MutableList<ShaderParam> = mutableListOf()
@@ -40,7 +41,7 @@ class EditorActivity : AppCompatActivity(){
     private fun saveShaderWithoutPersistance() {
         val name = nameInput.text.toString()
         val shaderMainText = shaderTextInput.text.toString()
-        val shaderAttributes = ShaderAttributes(name, shaderMainText, parameters)
+        val shaderAttributes = ShaderAttributes(name, shaderMainText, parameters, isPublic = isPublic)
 
         CameraActivity.shaderAttributes = shaderAttributes
     }
@@ -56,6 +57,7 @@ class EditorActivity : AppCompatActivity(){
             } else {
                 record.shaderMainText = shaderMainText
                 record.paramsJson = Json.encodeToString(parameters)
+                record.isPublic = isPublic
 
                 CameraActivity.shaderDao.update(record)
             }
@@ -71,7 +73,7 @@ class EditorActivity : AppCompatActivity(){
         // TODO: Validate shader and show errors.
         val name = nameInput.text.toString()
         val shaderMainText = shaderTextInput.text.toString()
-        val shaderAttributes = ShaderAttributes(name, shaderMainText, parameters)
+        val shaderAttributes = ShaderAttributes(name, shaderMainText, parameters, isPublic = isPublic)
 
         CameraActivity.shaderAttributes = shaderAttributes
         if (FirebaseAuth.getInstance().currentUser == null) {
@@ -98,6 +100,8 @@ class EditorActivity : AppCompatActivity(){
             shaderTextInput.setText(CameraActivity.shaderAttributes.shaderMainText)
             nameInput.setText(CameraActivity.shaderAttributes.name)
             parameters = CameraActivity.shaderAttributes.params.toMutableList()
+            isPublic = CameraActivity.shaderAttributes.isPublic
+            findViewById<ToggleButton>(R.id.public_private_toggle).isChecked = isPublic
         }
         setParametersListText()
     }
@@ -127,11 +131,13 @@ class EditorActivity : AppCompatActivity(){
     }
 
     private fun toggleTextStrikethrough(textView: TextView, strikethrough: Boolean) {
-        if (strikethrough) {
-            textView.paintFlags = textView.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
-        } else {
-            textView.paintFlags = textView.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
-        }
+        // This really isn't important. Disabling.
+
+//        if (strikethrough) {
+//            textView.paintFlags = textView.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+//        } else {
+//            textView.paintFlags = textView.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+//        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -145,6 +151,10 @@ class EditorActivity : AppCompatActivity(){
         addParameterBtn = findViewById(R.id.addParameters)
         shaderTextInput = findViewById(R.id.text_input)
         parametersListView = findViewById(R.id.parameters_list_view)
+
+        findViewById<ToggleButton>(R.id.public_private_toggle).setOnCheckedChangeListener { buttonView, isChecked ->
+            isPublic = isChecked
+        }
 
         addParameterBtn.setOnClickListener {
             val i = Intent(this, ParametersActivity::class.java)
@@ -219,26 +229,8 @@ class EditorActivity : AppCompatActivity(){
         if (nameInput.text.toString().isEmpty()) {
             return Toast.makeText(this, "Shader name cannot be blank", Toast.LENGTH_SHORT).show()
         }
-        if (isTemplateShader()) {
-            val msg = """
-                    Template shaders cannot be altered.
-                    Changes will not be persisted.
-                    Change the name in order to save as a new shader.
-                """.trimIndent()
-            AlertDialog.Builder(this)
-                .setTitle("Shader will not be saved")
-                .setMessage(msg)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                    saveShaderWithoutPersistance()
-                    goToCameraActivity()
-                }
-                .setNegativeButton(android.R.string.cancel, null).show()
-        } else {
-            saveShader {
-                goToCameraActivity()
-            }
-        }
+        saveShaderWithoutPersistance()
+        goToCameraActivity()
     }
 
     private fun deleteButtonOnClick () {

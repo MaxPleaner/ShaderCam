@@ -20,10 +20,14 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.messaging.FirebaseMessaging
+import com.skamz.shadercam.logic.database.FirebaseShaderDao
 import com.skamz.shadercam.logic.database.FirebaseUserDao
+import com.skamz.shadercam.logic.util.TaskRunner
 import com.skamz.shadercam.ui.activities.CameraActivity
+import com.skamz.shadercam.ui.activities.ShaderSelectActivity
 import java.util.*
 
 class LoginFragment : Fragment() {
@@ -35,6 +39,7 @@ class LoginFragment : Fragment() {
 
     companion object {
         private const val RC_SIGN_IN = 9002
+        var username: String = ""
     }
 
     override fun onCreateView(
@@ -60,29 +65,37 @@ class LoginFragment : Fragment() {
         return binding.root
     }
 
-    private fun updateLoginState() {
-        Log.e("DEBUG", "UPDATED LOGIN STATE")
+    private fun updateLoginState(callback: (() -> Unit)? = null) {
         val currentUser = mAuth.currentUser
         if (currentUser != null) {
+            setupShaderSync(currentUser)
             binding.loggedOutSection.visibility = View.GONE
             binding.loggedInSection.visibility = View.VISIBLE
             FirebaseUserDao.getUserInfo(currentUser.uid) {
-                if (it?.get("name") == null) {
-                    Log.e("DEBUG", "NO USERNAME")
-                    binding.currentUserInfo.text = "Logged in as\n${currentUser.email}"
+                binding.usernameInput.setText(it.name)
+                if (it.name == currentUser.email) {
+                    binding.currentUserInfo.text = "Logged in as\n${it.name}"
                     binding.setUsernameWarning.visibility = View.VISIBLE
                     binding.setUsernameButton.text = "Set Username"
                 } else {
-                    Log.e("DEBUG", "YES USERNAME")
-                    binding.currentUserInfo.text = "Logged in as\n${it.get("name")}"
+                    binding.currentUserInfo.text = "Logged in as\n${it.name}\n(${currentUser.email})"
                     binding.setUsernameWarning.visibility = View.GONE
-                    binding.usernameInput.setText(it["name"])
                     binding.setUsernameButton.text = "Change Username"
                 }
+                username = binding.usernameInput.text.toString()
             }
         } else {
             binding.loggedOutSection.visibility = View.VISIBLE
             binding.loggedInSection.visibility = View.GONE
+        }
+    }
+
+    private fun setupShaderSync(currentUser: FirebaseUser) {
+        val syncButton = binding.syncShadersButton
+        FirebaseShaderDao.getUserShaders(currentUser.uid) { firebaseShaders ->
+            TaskRunner().executeAsync(ShaderSelectActivity.LoadMineAndDefaultShadersAsync(), ShaderSelectActivity.LoadMineAndDefaultShadersAsync.Callback {
+                val shaders = it.filter { shader -> !shader.value.isTemplate }
+            })
         }
     }
 
@@ -96,7 +109,6 @@ class LoginFragment : Fragment() {
         }
         binding.setUsernameButton.setOnClickListener {
             val username = binding.usernameInput.text.toString()
-            Log.e("DEBUG", "Starting username flow: $username")
             ensureValidUsername(username) {
                 FirebaseUserDao.updateUserInfo(username)
                 updateLoginState()
@@ -145,6 +157,11 @@ class LoginFragment : Fragment() {
             }
     }
 
+    private fun loggedIn() {
+        updateLoginState() {
+            FirebaseUserDao.updateUserInfo(binding.usernameInput.text.toString())
+        }
+    }
 
     private fun firebaseAuthWithGoogle(acct: GoogleSignInAccount) {
         try {
@@ -157,8 +174,7 @@ class LoginFragment : Fragment() {
                             FirebaseMessaging.getInstance().token
                                 .addOnCompleteListener { fcmTask: Task<String> ->
                                     if (task.isSuccessful) {
-                                        FirebaseUserDao.updateUserInfo()
-                                        updateLoginState()
+                                        loggedIn()
                                         // Get new FCM registration token
 //                                        val token = fcmTask.result
 //                                        Log.e(TAG, "fcm token: $token")
@@ -166,7 +182,6 @@ class LoginFragment : Fragment() {
                                         Log.e(TAG, "could not get token")
                                     }
                                 }
-                            Log.e(TAG, "signInWithCredential:success")
                         } else {
                             //if sign in fails
                             Log.e(TAG, "signInWithCredential:failure", task.exception)

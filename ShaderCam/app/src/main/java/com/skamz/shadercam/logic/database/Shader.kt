@@ -1,10 +1,15 @@
   package com.skamz.shadercam.logic.database
 
+import android.util.Log
 import androidx.room.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import com.skamz.shadercam.logic.shaders.util.ShaderAttributes
+import com.skamz.shadercam.logic.shaders.util.ShaderParam
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 
   @Entity
 data class Shader(
@@ -18,7 +23,7 @@ data class Shader(
 
 class ShaderDaoWrapper(db: AppDatabase) {
     private val deviceShaderDao = db.shaderDao()
-    private val firebaseShaderDao = FirebaseShaderDao()
+    private val firebaseShaderDao = FirebaseShaderDao
 
     private fun currentUser (): FirebaseUser? {
         return FirebaseAuth.getInstance().currentUser
@@ -35,12 +40,12 @@ class ShaderDaoWrapper(db: AppDatabase) {
     }
 
     fun getAll(): List<Shader> {
-        if (currentUser() != null) {  firebaseShaderDao.getAll() }
+//        if (currentUser() != null) {  firebaseShaderDao.getAll() }
         return deviceShaderDao.getAll()
     }
 
     fun findByName(name: String): Shader? {
-        if (currentUser() != null) {  firebaseShaderDao.findByName(name) }
+//        if (currentUser() != null) {  firebaseShaderDao.findByName(name) }
         return deviceShaderDao.findByName(name)
     }
 
@@ -50,40 +55,80 @@ class ShaderDaoWrapper(db: AppDatabase) {
     }
 }
 
+typealias ShaderAttrsHashMap = java.util.HashMap<String, *>
+
 class FirebaseShaderDao {
-    private val db = Firebase.database
-    private fun currentUser (): FirebaseUser {
-        return FirebaseAuth.getInstance().currentUser!!
-    }
+    companion object {
+        private val db = Firebase.database
+        private fun currentUser(): FirebaseUser {
+            return FirebaseAuth.getInstance().currentUser!!
+        }
 
-    fun insertAll(vararg shaders: Shader) {
-        shaders.forEach { update(it) }
-    }
+        private fun shaderFromHashMap(name: String, shaderAttrsHashMap: ShaderAttrsHashMap) : ShaderAttributes {
+            return ShaderAttributes(
+                name = name,
+                shaderMainText = shaderAttrsHashMap["shaderMainText"] as String,
+                params = Json.decodeFromString(shaderAttrsHashMap["paramsJson"] as String),
+//                isPublic = shaderAttrsHashMap["public"] as Boolean,
+                isPublic = true,
+                isTemplate = false,
+            )
+        }
 
-    fun update(shader: Shader) {
-        // TODO: ensure you can't update other peoples' shaders!
-        val shaderRef = db.getReference("userShaders/${currentUser().uid}/shaders/${shader.name}")
-        shaderRef.setValue(mapOf(
-            "paramsJson" to shader.paramsJson,
-            "shaderMainText" to shader.shaderMainText,
-            "public" to shader.isPublic
-        ))
-    }
+        fun insertAll(vararg shaders: Shader) {
+            shaders.forEach { update(it) }
+        }
 
-    fun getAll(): List<Shader> {
-        // TODO: Change this to get all users, and make a different function to get a user's shaders.
-        return listOf()
-    }
+        fun update(shader: Shader) {
+            // TODO: ensure you can't update other peoples' shaders!
+            val addToFolder = if (shader.isPublic) "public" else "private"
+            val removeFromFolder = if (shader.isPublic) "private" else "public"
 
-    fun findByName(name: String): Shader? {
-        // TODO: change this to be scoped by user.
-        return null
-    }
+            val shaderRef =
+                db.getReference("userShaders/${currentUser().uid}/shaders/$addToFolder/${shader.name}")
+            shaderRef.setValue(
+                mapOf(
+                    "paramsJson" to shader.paramsJson,
+                    "shaderMainText" to shader.shaderMainText,
+                )
+            )
 
-    fun delete(shader: Shader) {
-        // TODO: ensure you can't delete other peoples' shaders!
-        val shaderRef = db.getReference("userShaders/${currentUser().uid}/shaders/${shader.name}")
-        shaderRef.removeValue()
+            val removeShaderRef = db.getReference("userShaders/${currentUser().uid}/shaders/$removeFromFolder/${shader.name}")
+            removeShaderRef.removeValue()
+        }
+
+//        fun getAll(): List<Shader> {
+//            // TODO: Change this to get all users, and make a different function to get a user's shaders.
+//            return listOf()
+//        }
+//
+//        fun findByName(name: String): Shader? {
+//            // TODO: change this to be scoped by user.
+//            return null
+//        }
+
+        fun getUserShaders(uid: String, callback: (MutableMap<String, ShaderAttributes>) -> Unit) {
+            val shaderRef =
+                db.getReference("userShaders/${uid}/shaders/public")
+            shaderRef.get().addOnSuccessListener {
+                val shadersMap = mutableMapOf<String, ShaderAttributes>()
+                it.children.forEach {
+                    shadersMap[it.key!!] = shaderFromHashMap(it.key!!, it.value as ShaderAttrsHashMap)
+                }
+                callback(shadersMap)
+            }.addOnFailureListener {
+                Log.e("DEBUG", "FAILURE getUserShaders $it")
+            }
+        }
+
+        fun delete(shader: Shader) {
+            listOf("public", "private").forEach { visibility ->
+                val shaderRef =
+                    db.getReference("userShaders/${currentUser().uid}/shaders/$visibility/${shader.name}")
+                shaderRef.removeValue()
+            }
+            // TODO: ensure you can't delete other peoples' shaders!
+        }
     }
 }
 

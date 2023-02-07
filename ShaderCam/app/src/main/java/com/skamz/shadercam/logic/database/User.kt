@@ -6,54 +6,73 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.ktx.database
 import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
+import com.skamz.shadercam.ui.fragments.LoginFragment
 
-//interface UserInfo {
-//    val name: String?
-//}
+typealias UsernameHashMap = java.util.HashMap<String, String>
 
-typealias UserInfo = java.util.HashMap<String, String?>
-
-interface UserInfoWrapper {
-    val uid: UserInfo
-}
+data class UserInfo(
+    val name: String,
+    val uid: String
+)
 
 class FirebaseUserDao {
     companion object {
         private val db = Firebase.database
-        private fun currentUser(): FirebaseUser {
-            return FirebaseAuth.getInstance().currentUser!!
+        private fun currentUser(): FirebaseUser? {
+            return FirebaseAuth.getInstance().currentUser
         }
 
-        fun getUserInfo(uid: String, callback: (UserInfo?) -> Unit) {
+        private fun buildUserInfoStruct(uid: String, usernameHashMap: UsernameHashMap): UserInfo {
+            return UserInfo(
+                name = usernameHashMap["name"]!!,
+                uid = uid
+            )
+        }
+
+        fun getOtherUsers(callback: (List<UserInfo>) -> Unit) {
+            val ref = db.getReference("usernames")
+            ref.get().addOnSuccessListener { it ->
+                getUserInfo(currentUser()?.uid) { userInfo ->
+                    var usersData = it.children.mapNotNull { doc ->
+                        doc.value
+                        buildUserInfoStruct(doc.key!!, doc.value as UsernameHashMap)
+                    }
+                    usersData = usersData.filter {
+                        it.name != userInfo.name
+                    }
+                    callback(usersData)
+                }
+            }.addOnFailureListener {
+                Log.e("DEBUG", "FAILURE getOtherUsers $it")
+            }
+        }
+
+        fun getUserInfo(uid: String?, callback: (UserInfo) -> Unit) {
+            if (uid == null) {
+                return callback(UserInfo("", ""))
+            }
             val userRef = db.getReference("usernames/${uid}")
             userRef.get().addOnSuccessListener {
-                val userInfo = it.value as UserInfo
-                callback(userInfo)
+                val userInfo = it.value as UsernameHashMap
+                callback(buildUserInfoStruct(uid, userInfo))
             }.addOnFailureListener {
-                Log.e("DEBUG", "FAILURE! $it")
+                Log.e("DEBUG", "FAILURE getUserInfo $it")
             }
         }
 
         // TODO: Don't do this filtering client side
         fun usernameAlreadyTaken(username: String, callback: (Boolean) -> Unit) {
-            Log.e("DEBUG", "sending query ..")
-            val query = db.getReference("usernames")
-            query.get().addOnSuccessListener {
-                val usersData = it.children.mapNotNull { doc -> doc.value
-                    doc.value as UserInfo
-                }
-                val taken = usersData.any { it["name"] == username }
+            getOtherUsers { users ->
+                val taken = users.any { it.name == username }
                 callback(taken)
-            }.addOnFailureListener {
-                Log.e("DEBUG", "FAILURE! $it")
             }
         }
 
         fun updateUserInfo(name: String? = null) {
-            Log.e("DEBUG", "saving user name: $name")
-            val userRef = db.getReference("usernames/${currentUser().uid}")
+            val nameVal = name ?: currentUser()!!.email
+            val userRef = db.getReference("usernames/${currentUser()!!.uid}")
             userRef.setValue(
-                mapOf("name" to name)
+                mapOf("name" to nameVal)
             )
         }
     }

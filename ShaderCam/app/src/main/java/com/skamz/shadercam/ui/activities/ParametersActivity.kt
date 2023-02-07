@@ -29,6 +29,7 @@ class ParametersActivity : AppCompatActivity() {
     private lateinit var colorLayout: LinearLayout
     private lateinit var textureLayout: LinearLayout
 
+    private lateinit var radioGroup: RadioGroup
     private lateinit var colorRB: RadioButton
     private lateinit var floatRB: RadioButton
     private lateinit var textureRB: RadioButton
@@ -155,29 +156,23 @@ class ParametersActivity : AppCompatActivity() {
     }
 
     private fun setType(newType: String) {
-        colorRB.isChecked = false
         colorLayout.visibility = View.GONE
-
-        textureRB.isChecked = false
         textureLayout.visibility = View.GONE
-
-        floatRB.isChecked = false
         floatLayout.visibility = View.GONE
 
         type = newType
 
         when (type) {
             "float" -> {
-                floatRB.isChecked = true
+                radioGroup.check(R.id.floatRb)
                 floatLayout.visibility = View.VISIBLE
             }
             "color" -> {
-                colorRB.isChecked = true
+                radioGroup.check(R.id.colorRB)
                 colorLayout.visibility = View.VISIBLE
             }
             "texture" -> {
-                Log.i("DEBUG", "making texture RB checked")
-                textureRB.isChecked = true
+                radioGroup.check(R.id.textureRB)
                 textureLayout.visibility = View.VISIBLE
             }
             else -> {
@@ -191,6 +186,7 @@ class ParametersActivity : AppCompatActivity() {
             floatLayout = findViewById(R.id.floatLayout)
             textureLayout = findViewById(R.id.textureLayout)
 
+            radioGroup = findViewById(R.id.typeRG)
             colorRB = findViewById(R.id.colorRB)
             floatRB = findViewById(R.id.floatRb)
             textureRB = findViewById(R.id.textureRB)
@@ -259,6 +255,19 @@ class ParametersActivity : AppCompatActivity() {
                 Name can only contain A-Z a-z 0-9 _
                 Name cannot begin with 0-9
             """.trimIndent()
+        }
+
+        when (type) {
+            "float" -> {
+                val default = defaultFloatInput.text.toString()
+                val min = minFloatInput.text.toString()
+                val max = maxFloatInput.text.toString()
+                if (listOf(default, min, max).any { it.isEmpty() }) {
+                    return """
+                        Must provide values for Default / Min / Max
+                    """.trimIndent()
+                }
+            }
         }
 
         return null

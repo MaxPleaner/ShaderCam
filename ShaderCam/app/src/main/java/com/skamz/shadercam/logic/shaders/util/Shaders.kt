@@ -1,14 +1,14 @@
 package com.skamz.shadercam.logic.shaders.util
 
-import com.skamz.shadercam.logic.shaders.camera_view_defaults.BrightShader
-import com.skamz.shadercam.logic.shaders.camera_view_defaults.NoopShader
-import com.skamz.shadercam.logic.shaders.camera_view_defaults.TextureOverlayShader
-import com.skamz.shadercam.logic.shaders.camera_view_defaults.TintShader
+import com.skamz.shadercam.logic.shaders.camera_view_defaults.*
 
 
 val defaultShaderMainText: String = """
-          vec4 color = texture2D(sTexture, vTextureCoord);
-          gl_FragColor = color;
+        void main() {
+            vec2 uv = vTextureCoord;
+            vec4 color = texture2D(sTexture, vTextureCoord);
+            gl_FragColor = color;
+        }
         """.trimIndent()
 
 class Shaders {
@@ -17,12 +17,16 @@ class Shaders {
         val brightShader: ShaderAttributes = BrightShader
         val tintShader: ShaderAttributes = TintShader
         val textureOverlayShader: ShaderAttributes = TextureOverlayShader
+        val edgeDetectShader: ShaderAttributes = EdgeDetectShader
+        val pixelateShader: ShaderAttributes = PixelateShader
 
         val all: List<ShaderAttributes> = listOf(
             noopShader,
             brightShader,
             tintShader,
-            textureOverlayShader
+            textureOverlayShader,
+            edgeDetectShader,
+            pixelateShader
         )
     }
 }

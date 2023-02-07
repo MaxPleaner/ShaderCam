@@ -7,8 +7,11 @@ import com.skamz.shadercam.logic.shaders.util.ShaderAttributes
 class BrightShaderData {
     companion object {
         val shaderMainText: String = """
-          vec4 color = texture2D(sTexture, vTextureCoord);
-          gl_FragColor = brightness * color;
+        void main() {
+            vec2 uv = vTextureCoord;
+            vec4 color = texture2D(sTexture, vTextureCoord);
+            gl_FragColor = brightness * color;
+        }            
     """.trimIndent()
 
         val params: MutableList<ShaderParam> = mutableListOf(
@@ -18,7 +21,7 @@ class BrightShaderData {
 }
 
 val BrightShader = ShaderAttributes(
-    "(Template) Brightness Adjust",
+    "001 - Brightness - Float Param Example",
     BrightShaderData.shaderMainText,
     BrightShaderData.params,
 )

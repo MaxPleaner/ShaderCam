@@ -1,15 +1,18 @@
 package com.skamz.shadercam.logic.shaders.util
 
 import android.content.Context
+import android.graphics.Camera
 import android.graphics.Color
 import android.net.Uri
 import android.opengl.GLES20
 import android.os.Build
-import android.util.Log
+import android.util.DisplayMetrics
+import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import com.otaliastudios.opengl.core.Egloo
+import com.skamz.shadercam.logic.shaders.camera_view_defaults.NoopShader
 import com.skamz.shadercam.logic.shaders.camera_view_defaults.TintShader
-
+import com.skamz.shadercam.ui.activities.CameraActivity
 
 class GenericShader() : BaseFilterPatch() {
 
@@ -22,9 +25,9 @@ class GenericShader() : BaseFilterPatch() {
     var params: MutableList<ShaderParam> = shaderAttributes.params
 
     companion object {
-        var shaderAttributes: ShaderAttributes = TintShader
-        lateinit var context: Context
+        var shaderAttributes: ShaderAttributes = NoopShader
         var programHandle: Int = 0
+        lateinit var context: CameraActivity
     }
 
     fun setValue(key: String, value: Any?) {
@@ -37,12 +40,10 @@ class GenericShader() : BaseFilterPatch() {
                     #extension GL_OES_EGL_image_external : require
                     precision mediump float;
                     uniform samplerExternalOES sTexture;
+                    uniform vec2 iResolution;
                     ${buildUniformsList()}
                     varying vec2 vTextureCoord;
-                    void main() {
-                        vec2 uv = vTextureCoord;
-                        $shaderMainText
-                    }
+                    $shaderMainText
                 """.trimIndent()
     }
 
@@ -90,6 +91,8 @@ class GenericShader() : BaseFilterPatch() {
 //        Log.e("DEBUG", "setting attributes: ${shaderAttributes.params}")
         params = shaderAttributes.params.toMutableList()
 
+        getDefaultParamLocations(newProgramHandle)
+
         params.forEach {
             dataLocations[it.paramName] = GLES20.glGetUniformLocation(newProgramHandle, it.paramName)
             updatedValues[it.paramName] = true
@@ -115,9 +118,27 @@ class GenericShader() : BaseFilterPatch() {
         }
     }
 
+    fun getScreenSize(): Map<String, Float> {
+        val displayMetrics = DisplayMetrics()
+        context.windowManager.defaultDisplay.getMetrics(displayMetrics)
+        var width = displayMetrics.widthPixels.toFloat()
+        var height = displayMetrics.heightPixels.toFloat()
+        return mapOf("x" to width, "y" to height)
+    }
+
+    fun getDefaultParamLocations (programHandle: Int) {
+        dataLocations["iResolution"] = GLES20.glGetUniformLocation(programHandle, "iResolution")
+    }
+
+    fun assignDefaultParamValues() {
+        val screenSize = getScreenSize()
+        GLES20.glUniform2f(dataLocations["iResolution"]!!, screenSize["x"]!!, screenSize["y"]!!)
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onPreDraw(timestampUs: Long, transformMatrix: FloatArray) {
         super.onPreDraw(timestampUs, transformMatrix)
+        assignDefaultParamValues()
         params.forEach {
             if (updatedValues[it.paramName] != true) { return@forEach }
             updatedValues[it.paramName] = false

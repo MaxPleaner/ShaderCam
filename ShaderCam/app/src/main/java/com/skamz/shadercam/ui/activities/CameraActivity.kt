@@ -9,6 +9,7 @@ import android.opengl.GLES20.*
 import android.os.Build
 import android.os.Bundle
 import android.util.Log.*
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import androidx.annotation.RequiresApi
@@ -45,6 +46,7 @@ import java.util.*
 class CameraActivity : AppCompatActivity() {
     private lateinit var camera: CameraView
     private var mode:Mode = Mode.PICTURE
+    private var showParams: Boolean = false
 
     private lateinit var viewBinding: ActivityCameraBinding
 
@@ -67,6 +69,24 @@ class CameraActivity : AppCompatActivity() {
 
         lateinit var db: RoomDatabase
         lateinit var shaderDao: ShaderDaoWrapper
+
+        // Returns null if shader is valid. Otherwise, returns error message
+        fun validateShader(shader: GenericShader): String? {
+            val core = EglCore()
+            val texture = GlTexture()
+            val surfaceTexture = SurfaceTexture(texture.id)
+            val window = EglWindowSurface(core, surfaceTexture)
+            window.makeCurrent()
+
+            try {
+                GlShader(GL_FRAGMENT_SHADER, shader.fragmentShader)
+            } catch (e: java.lang.RuntimeException) {
+                return e.message
+            } finally {
+                core.release()
+            }
+            return null
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -120,6 +140,15 @@ class CameraActivity : AppCompatActivity() {
                     camera.takeVideoSnapshot(File(path))
                 }
             }
+        }
+
+        val paramToggleButton = findViewById<ImageButton>(R.id.params_toggle)
+        paramToggleButton.setOnClickListener {
+            showParams = !showParams
+            val uiContainer = findViewById<LinearLayout>(R.id.dynamic_ui)
+            uiContainer.visibility = if (showParams) View.VISIBLE else View.GONE
+            val shaderTitle = findViewById<TextView>(R.id.shader_title)
+            shaderTitle.visibility = if (showParams) View.VISIBLE else View.GONE
         }
 
         val switchModeBtn = findViewById<ImageButton>(R.id.switch_photo_video)
@@ -246,25 +275,8 @@ class CameraActivity : AppCompatActivity() {
         return (value - oldMin) * outputRange / inputRange + newMin
     }
 
-    // Returns null if shader is valid. Otherwise, returns error message
-    private fun validateShader(shader: GenericShader): String? {
-        val core = EglCore()
-        val texture = GlTexture()
-        val surfaceTexture = SurfaceTexture(texture.id)
-        val window = EglWindowSurface(core, surfaceTexture)
-        window.makeCurrent()
-
-        try {
-            GlShader(GL_FRAGMENT_SHADER, shader.fragmentShader)
-        } catch (e: java.lang.RuntimeException) {
-            return e.message
-        } finally {
-            core.release()
-        }
-        return null
-    }
-
     private fun useFallbackShader() {
+        GenericShader.shaderAttributes = NoopShader
         GenericShader.shaderAttributes = NoopShader
         GenericShader.context = this
         camera.filter = GenericShader()
@@ -299,10 +311,15 @@ class CameraActivity : AppCompatActivity() {
 
         updateShaderText()
 
+        val inflater =
+            this.getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
+
         shader.params.forEach { it ->
             when (it.paramType) {
                 "float" -> {
-                    val inflatedView: View = View.inflate(this, R.layout.param_slider, uiContainer)
+                    val inflatedView = inflater.inflate(R.layout.param_slider, null)
+                    uiContainer.addView(inflatedView)
+
                     val slider = inflatedView.findViewById<Slider>(R.id.slider)
                     val paramTitle = inflatedView.findViewById<TextView>(R.id.param_slider_name)
                     paramTitle.text = it.paramName
@@ -319,7 +336,8 @@ class CameraActivity : AppCompatActivity() {
                     }
                 }
                 "color" -> {
-                    val inflatedView: View = View.inflate(this, R.layout.param_color, uiContainer)
+                    val inflatedView = inflater.inflate(R.layout.param_color, null)
+                    uiContainer.addView(inflatedView)
                     val button = inflatedView.findViewById<Button>(R.id.color_param_button)
                     val paramTitle = inflatedView.findViewById<TextView>(R.id.param_color_name)
                     paramTitle.text = it.paramName
@@ -338,7 +356,8 @@ class CameraActivity : AppCompatActivity() {
                 }
                 "texture" -> {
                     val shaderParam = it as TextureShaderParam
-                    val inflatedView: View = View.inflate(this, R.layout.param_texture, uiContainer)
+                    val inflatedView = inflater.inflate(R.layout.param_texture, null)
+                    uiContainer.addView(inflatedView)
 
                     val paramTitle = inflatedView.findViewById<TextView>(R.id.param_texture_name)
                     paramTitle.text = it.paramName

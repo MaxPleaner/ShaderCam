@@ -56,9 +56,17 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sync Shaders"
+                android:text="Push Offline Changes to Cloud"
                 android:layout_marginBottom="20dp"
-                android:id="@+id/sync_shaders_button"
+                android:id="@+id/push_to_cloud"
+                ></Button>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pull Shaders From Cloud"
+                android:layout_marginBottom="20dp"
+                android:id="@+id/pull_from_cloud"
                 ></Button>
 
             <Button

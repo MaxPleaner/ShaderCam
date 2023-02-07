@@ -1,8 +1,8 @@
 package com.skamz.shadercam.ui.fragments
 
-import android.content.Context
 import android.content.Intent
-import android.opengl.Visibility
+import android.graphics.Camera
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -10,6 +10,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import com.google.firebase.auth.FirebaseAuth
 import com.skamz.shadercam.R
@@ -20,14 +22,19 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.messaging.FirebaseMessaging
 import com.skamz.shadercam.logic.database.FirebaseShaderDao
 import com.skamz.shadercam.logic.database.FirebaseUserDao
+import com.skamz.shadercam.logic.database.Shader
 import com.skamz.shadercam.logic.util.TaskRunner
 import com.skamz.shadercam.ui.activities.CameraActivity
 import com.skamz.shadercam.ui.activities.ShaderSelectActivity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.util.*
 
 class LoginFragment : Fragment() {
@@ -42,12 +49,16 @@ class LoginFragment : Fragment() {
         var username: String = ""
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
         binding = DataBindingUtil.inflate(inflater,R.layout.fragment_login, container, false)
+
+        binding.pushToCloud.setOnClickListener { pushToCloud() }
+        binding.pullFromCloud.setOnClickListener { pullFromCloud() }
 
         // configure google sign in
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -68,7 +79,6 @@ class LoginFragment : Fragment() {
     private fun updateLoginState(callback: (() -> Unit)? = null) {
         val currentUser = mAuth.currentUser
         if (currentUser != null) {
-            setupShaderSync(currentUser)
             binding.loggedOutSection.visibility = View.GONE
             binding.loggedInSection.visibility = View.VISIBLE
             FirebaseUserDao.getUserInfo(currentUser.uid) {
@@ -90,13 +100,72 @@ class LoginFragment : Fragment() {
         }
     }
 
-    private fun setupShaderSync(currentUser: FirebaseUser) {
-        val syncButton = binding.syncShadersButton
-        FirebaseShaderDao.getUserShaders(currentUser.uid) { firebaseShaders ->
-            TaskRunner().executeAsync(ShaderSelectActivity.LoadMineAndDefaultShadersAsync(), ShaderSelectActivity.LoadMineAndDefaultShadersAsync.Callback {
-                val shaders = it.filter { shader -> !shader.value.isTemplate }
-            })
+    private fun pushToCloud() {
+        val msg = """
+            This will push all the shaders on your device to the cloud.
+            If any with the same name already exist on the cloud, they will be overwritten.
+            Proceed?
+        """.trimIndent()
+        showAlert("Push To Cloud", msg) {
+            CoroutineScope(Dispatchers.IO).launch {
+                val localShaders = CameraActivity.shaderDao.getUserShaders()
+                localShaders.forEach { localShader ->
+                    FirebaseShaderDao.insertAll(localShader)
+                }
+                requireActivity().runOnUiThread {
+                    Toast.makeText(requireActivity(), "Finished", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    private fun pullFromCloud () {
+        val msg = """
+            This will pull all the shaders on the cloud to your device.
+            If any with the same name already exist on your device, they will be overwritten.
+            Proceed?
+        """.trimIndent()
+        showAlert("Pull From Cloud", msg) {
+            FirebaseShaderDao.getUserShaders(mAuth.currentUser!!.uid) { cloudShaders ->
+                CoroutineScope(Dispatchers.IO).launch {
+                    val localShaders = CameraActivity.shaderDao.getUserShaders()
+                    cloudShaders.forEach { name, shaderAttributes ->
+                        val matchingLocalShader = localShaders.find { localShader ->
+                            localShader.name == name
+                        }
+                        val shader = Shader(
+                            uid = 0,
+                            name = name,
+                            shaderMainText = shaderAttributes.shaderMainText,
+                            paramsJson = Json.encodeToString(shaderAttributes.params),
+                            userUid = mAuth.currentUser!!.uid,
+                            isPublic = shaderAttributes.isPublic
+                        )
+                        if (matchingLocalShader != null) {
+                            shader.uid = matchingLocalShader.uid
+                            CameraActivity.shaderDao.update(shader)
+                        } else {
+                            CameraActivity.shaderDao.insertAll(shader)
+                        }
+                    }
+                }
+            }
+            requireActivity().runOnUiThread {
+                Toast.makeText(requireActivity(), "Finished", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun showAlert(title: String, msg: String, callback: () -> Unit) {
+        AlertDialog.Builder(requireActivity())
+            .setTitle(title)
+            .setMessage(msg)
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                callback()
+            }
+            .setNegativeButton(android.R.string.cancel, null).show()
     }
 
     private fun setOnClickListeners() {
@@ -159,6 +228,10 @@ class LoginFragment : Fragment() {
 
     private fun loggedIn() {
         updateLoginState() {
+            // This doesn't work. wtf.
+            requireActivity().runOnUiThread {
+                showAlert("Logged In", "If you created/edited any shaders while offline, use the 'Push To Cloud' button to back them up") { }
+            }
             FirebaseUserDao.updateUserInfo(binding.usernameInput.text.toString())
         }
     }

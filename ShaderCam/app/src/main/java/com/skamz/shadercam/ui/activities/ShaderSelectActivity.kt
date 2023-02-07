@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.auth.FirebaseUser
 import com.skamz.shadercam.R
 import com.skamz.shadercam.databinding.ActivityShaderSelectBinding
 import com.skamz.shadercam.logic.database.FirebaseShaderDao
@@ -16,7 +15,6 @@ import com.skamz.shadercam.logic.shaders.util.Shaders
 import com.skamz.shadercam.logic.util.TaskRunner
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import org.w3c.dom.Text
 import java.util.concurrent.Callable
 
 
@@ -43,7 +41,7 @@ class ShaderSelectActivity: AppCompatActivity() {
         }
 
         override fun call(): MutableMap<String, ShaderAttributes> {
-            val userShaders = CameraActivity.shaderDao.getAll()
+            val userShaders = CameraActivity.shaderDao.getUserShaders()
             val newShadersList = mutableMapOf<String, ShaderAttributes>()
             userShaders.forEach {
                 val params = Json.decodeFromString<MutableList<ShaderParam>>(it.paramsJson)

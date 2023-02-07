@@ -7,18 +7,17 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import com.skamz.shadercam.logic.shaders.util.ShaderAttributes
-import com.skamz.shadercam.logic.shaders.util.ShaderParam
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
   @Entity
 data class Shader(
-    @PrimaryKey(autoGenerate = true) val uid: Int,
-    val name: String,
-    var shaderMainText: String,
-    var paramsJson: String,
-    var userUid: String? = null,
-    var isPublic: Boolean = false
+      @PrimaryKey(autoGenerate = true) var uid: Int,
+      val name: String,
+      var shaderMainText: String,
+      var paramsJson: String,
+      var userUid: String? = null,
+      var isPublic: Boolean = false
 )
 
 class ShaderDaoWrapper(db: AppDatabase) {
@@ -39,13 +38,11 @@ class ShaderDaoWrapper(db: AppDatabase) {
         deviceShaderDao.update(shader)
     }
 
-    fun getAll(): List<Shader> {
-//        if (currentUser() != null) {  firebaseShaderDao.getAll() }
-        return deviceShaderDao.getAll()
+    fun getUserShaders(): List<Shader> {
+        return deviceShaderDao.getUserShaders()
     }
 
     fun findByName(name: String): Shader? {
-//        if (currentUser() != null) {  firebaseShaderDao.findByName(name) }
         return deviceShaderDao.findByName(name)
     }
 
@@ -135,7 +132,7 @@ class FirebaseShaderDao {
 @Dao
 interface DeviceShaderDao {
     @Query("SELECT * FROM shader")
-    fun getAll(): List<Shader>
+    fun getUserShaders(): List<Shader>
 
     @Query("SELECT * FROM shader WHERE name LIKE :name LIMIT 1 ")
     fun findByName(name: String): Shader?

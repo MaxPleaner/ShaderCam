@@ -11,7 +11,7 @@ class NoopShaderData {
     }
 }
 val NoopShader = ShaderAttributes(
-    "(Template) Pass Through",
+    "000 - Empty",
     NoopShaderData.shaderMainText,
     NoopShaderData.params,
 )

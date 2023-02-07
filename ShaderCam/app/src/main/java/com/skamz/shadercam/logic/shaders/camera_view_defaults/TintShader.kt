@@ -7,8 +7,11 @@ import com.skamz.shadercam.logic.shaders.util.ShaderAttributes
 class TintShaderData {
     companion object {
         val shaderMainText: String = """
-          vec4 color = texture2D(sTexture, vTextureCoord);
-          gl_FragColor = vec4(tint, 1.0) * color;
+        void main() {
+            vec2 uv = vTextureCoord;            
+            vec4 color = texture2D(sTexture, vTextureCoord);
+            gl_FragColor = vec4(tint, 1.0) * color;
+        }
     """.trimIndent()
 
         val params: MutableList<ShaderParam> = mutableListOf(
@@ -19,7 +22,7 @@ class TintShaderData {
 }
 
 val TintShader = ShaderAttributes(
-    "(Template) Tint",
+    "002 - Tint - Color Param Example",
     TintShaderData.shaderMainText,
     TintShaderData.params,
 )

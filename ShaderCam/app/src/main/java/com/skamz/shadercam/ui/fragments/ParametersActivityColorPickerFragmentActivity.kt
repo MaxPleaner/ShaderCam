@@ -1,4 +1,4 @@
-package com.skamz.shadercam.ui.activities
+package com.skamz.shadercam.ui.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -23,6 +23,7 @@ import androidx.fragment.app.Fragment
 import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
 import com.skamz.shadercam.R
+import com.skamz.shadercam.ui.activities.ParametersActivity
 
 class ParametersActivityColorPickerFragmentActivity : Fragment(R.layout.fragment_color_picker) {
     companion object {

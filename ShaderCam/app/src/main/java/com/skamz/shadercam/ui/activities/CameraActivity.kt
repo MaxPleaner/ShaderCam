@@ -8,7 +8,6 @@ import android.net.Uri
 import android.opengl.GLES20.*
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.util.Log.*
 import android.view.View
 import android.widget.*
@@ -18,11 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.material.slider.Slider
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.ktx.Firebase
 import com.otaliastudios.cameraview.CameraListener
 import com.otaliastudios.cameraview.CameraView
 import com.otaliastudios.cameraview.PictureResult
@@ -35,11 +30,10 @@ import com.otaliastudios.opengl.texture.GlTexture
 import com.skamz.shadercam.*
 import com.skamz.shadercam.databinding.ActivityCameraBinding
 import com.skamz.shadercam.logic.database.AppDatabase
-import com.skamz.shadercam.logic.database.ShaderDao
+import com.skamz.shadercam.logic.database.ShaderDaoWrapper
 import com.skamz.shadercam.logic.shaders.camera_view_defaults.NoopShader
 import com.skamz.shadercam.logic.shaders.util.*
 import com.skamz.shadercam.logic.util.IoUtil
-import com.skamz.shadercam.ui.fragments.LoginFragment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -72,7 +66,7 @@ class CameraActivity : AppCompatActivity() {
         var shaderErrorMsg: String? = null
 
         lateinit var db: RoomDatabase
-        lateinit var shaderDao: ShaderDao
+        lateinit var shaderDao: ShaderDaoWrapper
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -86,7 +80,7 @@ class CameraActivity : AppCompatActivity() {
             AppDatabase::class.java, "shadercam-db"
         ).fallbackToDestructiveMigration().build()
 
-        shaderDao = (db as AppDatabase).shaderDao()
+        shaderDao = ShaderDaoWrapper(db as AppDatabase)
 
         findViewById<Button>(R.id.editor_link).setOnClickListener {
             val intent = Intent(this, EditorActivity::class.java)
@@ -101,23 +95,10 @@ class CameraActivity : AppCompatActivity() {
         }
 
         findViewById<ImageButton>(R.id.log_in_out).setOnClickListener {
-                // Configure Google Sign In
-                val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestIdToken(getString(R.string.default_web_client_id))
-                    .requestEmail()
-                    .build()
-                val mGoogleSignInClient =
-                    GoogleSignIn.getClient(Objects.requireNonNull(this), gso)
-                mGoogleSignInClient.signOut()
-                    .addOnCompleteListener(Objects.requireNonNull(this)) {
-                            FirebaseAuth.getInstance().signOut()
-                        moveNext()
-                        Toast.makeText(this, "Successfully signed out", Toast.LENGTH_SHORT).show()
-
-                        Log.e(TAG, "onComplete: user signed out")
-
-                    }
-
+            val intent = Intent(this, OnboardingBaseActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+            intent.putExtra("KEEP_VALUES", true)
+            startActivity(intent)
         }
 
         findViewById<ImageButton>(R.id.camera_switch_front_back).setOnClickListener {
@@ -160,13 +141,6 @@ class CameraActivity : AppCompatActivity() {
         camera.addCameraListener(MyCameraListener(this))
 
         setShader(shader)
-    }
-
-    private fun moveNext() {
-        val intent = Intent(this, OnboardingBaseActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-        intent.putExtra("KEEP_VALUES", true)
-        startActivity(intent)
     }
 
     class MyCameraListener(parent: CameraActivity) : CameraListener() {

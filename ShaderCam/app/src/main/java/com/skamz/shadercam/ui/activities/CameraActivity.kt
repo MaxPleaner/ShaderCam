@@ -8,6 +8,7 @@ import android.net.Uri
 import android.opengl.GLES20.*
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.util.Log.*
 import android.view.LayoutInflater
 import android.view.View
@@ -46,7 +47,7 @@ import java.util.*
 class CameraActivity : AppCompatActivity() {
     private lateinit var camera: CameraView
     private var mode:Mode = Mode.PICTURE
-    private var showParams: Boolean = false
+    private var showParams: Boolean = true
 
     private lateinit var viewBinding: ActivityCameraBinding
 
@@ -168,6 +169,8 @@ class CameraActivity : AppCompatActivity() {
         camera = findViewById(R.id.camera_view)
         camera.setLifecycleOwner(this)
         camera.addCameraListener(MyCameraListener(this))
+
+//        Log.e("DEBUG", camera.cameraOptions!!.supportedPictureSizes.toString())
 
         setShader(shader)
     }

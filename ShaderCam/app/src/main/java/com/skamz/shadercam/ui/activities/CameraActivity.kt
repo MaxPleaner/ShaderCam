@@ -54,14 +54,14 @@ class CameraActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "DEBUG"
         var shaderAttributes: ShaderAttributes = GenericShader.shaderAttributes
-            set(value) {
-                // Due to BaseFilter (and therefore GenericShader) internally using
-                // .newInstance() while capturing photo/video, we cannot pass arguments to the
-                // constructor. So, it is instead configured using the `shaderAttributes` static property.
-                GenericShader.shaderAttributes = value
-                shader = GenericShader()
-                field = value
-            }
+//            set(value) {
+//                // Due to BaseFilter (and therefore GenericShader) internally using
+//                // .newInstance() while capturing photo/video, we cannot pass arguments to the
+//                // constructor. So, it is instead configured using the `shaderAttributes` static property.
+//                GenericShader.shaderAttributes = value
+//                shader = GenericShader()
+//                field = value
+//            }
 
         var shader: GenericShader = GenericShader()
 
@@ -170,9 +170,7 @@ class CameraActivity : AppCompatActivity() {
         camera.setLifecycleOwner(this)
         camera.addCameraListener(MyCameraListener(this))
 
-//        Log.e("DEBUG", camera.cameraOptions!!.supportedPictureSizes.toString())
-
-        setShader(shader)
+        setShader(shaderAttributes)
     }
 
     class MyCameraListener(parent: CameraActivity) : CameraListener() {
@@ -196,20 +194,20 @@ class CameraActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        setShader(shader)
+        setShader(shaderAttributes)
 
         val deletedShaderName = intent?.getStringExtra("DeletedShader")
         if (deletedShaderName != null) {
             Toast.makeText(this, "Deleted shader $deletedShaderName", Toast.LENGTH_SHORT).show()
             shaderAttributes = NoopShader
-            setShader(shader)
+            setShader(shaderAttributes)
         }
 
         val updatedColorName = intent?.getStringExtra("UPDATED_COLOR_NAME")
         if (updatedColorName != null) {
             val updatedColorValue = intent!!.getIntExtra("UPDATED_COLOR_VALUE", Color.BLACK)
             updateShaderParam(updatedColorName, updatedColorValue!!)
-            setShader(shader) // TODO: don't really need to rebuild the whole shader here.
+            setShader(shaderAttributes) // TODO: don't really need to rebuild the whole shader here.
         }
     }
 
@@ -279,7 +277,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun useFallbackShader() {
-        GenericShader.shaderAttributes = NoopShader
+        Log.e("DEBUG", "using fallback shader!")
         GenericShader.shaderAttributes = NoopShader
         GenericShader.context = this
         camera.filter = GenericShader()
@@ -287,6 +285,7 @@ class CameraActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun handleShaderError (error: String) {
+        Log.e("DEBUG", "handling shader error!")
         useFallbackShader()
         val uiContainer = findViewById<LinearLayout>(R.id.dynamic_ui)
         uiContainer.removeAllViews()
@@ -296,7 +295,16 @@ class CameraActivity : AppCompatActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun setShader(shader: GenericShader) {
+    private fun setShader(shaderAttributes: ShaderAttributes) {
+
+        GenericShader.shaderAttributes = shaderAttributes
+        GenericShader.errorCallback = { errorMessage: String ->
+            runOnUiThread { handleShaderError(errorMessage) }
+        }
+        shader = GenericShader()
+
+        // Other errors do not prevent the shader from building,
+        // and so they can be handled here.
         val error = validateShader(shader)
         if (error != null) {
             handleShaderError(error)

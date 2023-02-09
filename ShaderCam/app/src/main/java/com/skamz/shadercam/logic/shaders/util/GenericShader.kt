@@ -7,6 +7,7 @@ import android.net.Uri
 import android.opengl.GLES20
 import android.os.Build
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import com.otaliastudios.opengl.core.Egloo
@@ -28,6 +29,7 @@ class GenericShader() : BaseFilterPatch() {
         var shaderAttributes: ShaderAttributes = NoopShader
         var programHandle: Int = 0
         lateinit var context: CameraActivity
+        var errorCallback: (String) -> Unit = {}
     }
 
     fun setValue(key: String, value: Any?) {
@@ -85,16 +87,18 @@ class GenericShader() : BaseFilterPatch() {
         super.onCreate(newProgramHandle)
 
         programHandle = newProgramHandle
+        setupNewShader()
+    }
 
+    fun setupNewShader() {
         name = shaderAttributes.name
         shaderMainText = shaderAttributes.shaderMainText
-//        Log.e("DEBUG", "setting attributes: ${shaderAttributes.params}")
         params = shaderAttributes.params.toMutableList()
 
-        getDefaultParamLocations(newProgramHandle)
+        getDefaultParamLocations(programHandle)
 
         params.forEach {
-            dataLocations[it.paramName] = GLES20.glGetUniformLocation(newProgramHandle, it.paramName)
+            dataLocations[it.paramName] = GLES20.glGetUniformLocation(programHandle, it.paramName)
             updatedValues[it.paramName] = true
             if (dataValues[it.paramName] == null) {
                 val paramVal = when (it.paramType) {
@@ -107,7 +111,15 @@ class GenericShader() : BaseFilterPatch() {
                 }
                 dataValues[it.paramName] = paramVal
             }
-            Egloo.checkGlProgramLocation(dataLocations[it.paramName]!!, it.paramName)
+            try {
+                Egloo.checkGlProgramLocation(dataLocations[it.paramName]!!, it.paramName)
+            } catch (e: Exception) {
+                dataLocations = mutableMapOf()
+                dataValues = mutableMapOf()
+                errorCallback(e.message ?: "Unknown shader error")
+                shaderAttributes = NoopShader
+                setupNewShader()
+            }
         }
     }
 

@@ -42,11 +42,9 @@ class PixelateShaderData {
             return floor((colorize(col) * 6. - colorize(colU) - colorize(colD) - colorize(colR) - colorize(colL)) / 2. * 32.) / 32.;
         }
         
-        void main()
-        {   
-            vec2 uv = vTextureCoord;
-            gl_FragColor = vec4(getCol(uv),1.);
-        }              
+        vec3 mainImage(vec2 uv, vec3 color) {
+            return getCol(uv);
+        }                
     """.trimIndent()
 
         val params: MutableList<ShaderParam> = mutableListOf(

@@ -150,6 +150,9 @@ class CameraActivity : AppCompatActivity() {
             uiContainer.visibility = if (showParams) View.VISIBLE else View.GONE
             val shaderTitle = findViewById<TextView>(R.id.shader_title)
             shaderTitle.visibility = if (showParams) View.VISIBLE else View.GONE
+
+            // DEBUG SHIT. REMOVE.
+            setShader(shaderAttributes)
         }
 
         val switchModeBtn = findViewById<ImageButton>(R.id.switch_photo_video)
@@ -276,23 +279,32 @@ class CameraActivity : AppCompatActivity() {
         return (value - oldMin) * outputRange / inputRange + newMin
     }
 
-    private fun useFallbackShader() {
-        Log.e("DEBUG", "using fallback shader!")
+    private fun useFallbackShader(): GenericShader {
         GenericShader.shaderAttributes = NoopShader
         GenericShader.context = this
         camera.filter = GenericShader()
+        return camera.filter as GenericShader
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun handleShaderError (error: String) {
-        Log.e("DEBUG", "handling shader error!")
-        useFallbackShader()
+    private fun handleShaderError (error: String): GenericShader {
+        val shader = useFallbackShader()
         val uiContainer = findViewById<LinearLayout>(R.id.dynamic_ui)
         uiContainer.removeAllViews()
         shaderHasError = true
         shaderErrorMsg = error
         updateShaderText(shader.name)
+        return shader
     }
+
+//    @RequiresApi(Build.VERSION_CODES.O)
+//    private fun buildShaderOrUseFallback(): GenericShader {
+//        return try {
+//            GenericShader()
+//        } catch (e: Exception) {
+//            handleShaderError(e.message ?: "Unknown shader error")
+//        }
+//    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun setShader(shaderAttributes: ShaderAttributes) {
@@ -301,6 +313,8 @@ class CameraActivity : AppCompatActivity() {
         GenericShader.errorCallback = { errorMessage: String ->
             runOnUiThread { handleShaderError(errorMessage) }
         }
+
+//        shader = buildShaderOrUseFallback()
         shader = GenericShader()
 
         // Other errors do not prevent the shader from building,

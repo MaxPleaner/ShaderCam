@@ -7,10 +7,9 @@ import com.skamz.shadercam.logic.shaders.util.ShaderAttributes
 class TintShaderData {
     companion object {
         val shaderMainText: String = """
-        void main() {
-            vec2 uv = vTextureCoord;            
-            vec4 color = texture2D(sTexture, vTextureCoord);
-            gl_FragColor = vec4(tint, 1.0) * color;
+            vec3 mainImage(vec2 uv, vec3 color) {
+                return tint * color;
+            }
         }
     """.trimIndent()
 

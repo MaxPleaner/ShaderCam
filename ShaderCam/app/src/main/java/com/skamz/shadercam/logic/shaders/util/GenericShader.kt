@@ -37,17 +37,70 @@ class GenericShader() : BaseFilterPatch() {
         updatedValues[key] = true
     }
 
-    override fun getFragmentShader(): String {
+    override fun getFragmentShader() : String {
         return """
-                    #extension GL_OES_EGL_image_external : require
-                    precision mediump float;
-                    uniform samplerExternalOES sTexture;
-                    uniform vec2 iResolution;
-                    ${buildUniformsList()}
-                    varying vec2 vTextureCoord;
-                    $shaderMainText
-                """.trimIndent()
+            #extension GL_OES_EGL_image_external : require
+            precision mediump float;
+
+            uniform samplerExternalOES sTexture;
+            varying vec2 vTextureCoord;
+           
+            
+            void main() {
+                // vec2 uv = rotateUV(vTextureCoord, 90.0);
+                // vec4 color = sampleCamera(uv).rgb;
+                // return vec4(mainImage(uv, color), 1.0);
+                // return vec4(color, 1.0);
+                vec4 color = texture2D(sTexture, vTextureCoord);
+                gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+            }
+        """.trimIndent()
     }
+
+//    override fun getFragmentShader(): String {
+//        return """
+//                    #extension GL_OES_EGL_image_external : require
+//                    precision mediump float;
+//
+//                    // Users are expected to define their `vec3 mainImage(vec2 uv, vec3 color)` here:
+//                    $shaderMainText
+//
+//                    // Default uniforms which CameraView manages bindings for
+//                    uniform samplerExternalOES sTexture;
+//                    varying vec2 vTextureCoord;
+//
+//                    // Default uniforms which we manage bindings for
+//                    uniform vec2 iResolution;
+//
+//                    // User provided uniforms
+//                    ${buildUniformsList()}
+//
+//                    // It requires different UVs to sample the camera vs a texture (in screen space).
+//                    // Thus, we use this rotation function.
+//                    vec2 rotateUV(vec2 uv, float rotation)
+//                    {
+//                        float mid = 0.5;
+//                        return vec2(
+//                            cos(rotation) * (uv.x - mid) + sin(rotation) * (uv.y - mid) + mid,
+//                            cos(rotation) * (uv.y - mid) - sin(rotation) * (uv.x - mid) + mid
+//                        );
+//                    };
+//
+//                    // Function translates the screen space UVs to camera space.
+//                    vec3 sampleCamera(vec2 uv) {
+//                        return texture2D(sTexture, rotateUV(uv, -90));
+//                    }
+//
+//                    void main() {
+//                        $defaultUvExpression
+//                     //  vec2 uv = rotateUV(vTextureCoord, 90.0);
+//                     //  vec3 color = sampleCamera(uv);
+//                      // return vec4(mainImage(uv, color), 1.0);
+//                      // return vec4(color, 1.0);
+//                      return vec4(1.0, 0.0, 0.0, 1.0);
+//                    }
+//                """.trimIndent()
+//    }
 
     private fun buildUniformsList(): String {
         return params.map {
@@ -84,9 +137,8 @@ class GenericShader() : BaseFilterPatch() {
     }
 
     override fun onCreate(newProgramHandle: Int) {
-        super.onCreate(newProgramHandle)
-
         programHandle = newProgramHandle
+        super.onCreate(newProgramHandle)
         setupNewShader()
     }
 
@@ -114,13 +166,17 @@ class GenericShader() : BaseFilterPatch() {
             try {
                 Egloo.checkGlProgramLocation(dataLocations[it.paramName]!!, it.paramName)
             } catch (e: Exception) {
-                dataLocations = mutableMapOf()
-                dataValues = mutableMapOf()
-                errorCallback(e.message ?: "Unknown shader error")
-                shaderAttributes = NoopShader
-                setupNewShader()
+                useFallbackShader(e)
             }
         }
+    }
+
+    fun useFallbackShader(e: Exception) {
+        dataLocations = mutableMapOf()
+        dataValues = mutableMapOf()
+        errorCallback(e.message ?: "Unknown shader error")
+        shaderAttributes = NoopShader
+        setupNewShader()
     }
 
     override fun onDestroy() {
@@ -171,8 +227,6 @@ class GenericShader() : BaseFilterPatch() {
                     )
                 }
                 "texture" -> {
-//                    throw Exception("need to implement texture handler in GenericShader.onPreDraw")
-                    // TODO: Call functions in TextureUtils
                     val param = it as TextureShaderParam
                     TextureUtils.setTextureParam(
                         context,

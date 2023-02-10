@@ -5,12 +5,10 @@ import com.skamz.shadercam.logic.shaders.util.*
 class TextureOverlayShaderData {
     companion object {
         val shaderMainText: String = """
-        void main() {
-            vec2 uv = vTextureCoord;
-            vec4 color = texture2D(sTexture, vTextureCoord);
-            vec4 overlay = texture2D(overlayTexture, vTextureCoord);
-            gl_FragColor = color - (overlay * amt);
-        }                 
+        vec3 mainImage(vec2 uv, vec3 color) {
+            vec3 overlay = texture2D(overlayTexture, uv).rgb;
+            return color - (overlay * amt);
+        }    
         """.trimIndent()
         val defaultImageUrl = TextureUtils.resourceIdToUri("R.drawable.noise_texture").toString()
 

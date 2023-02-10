@@ -7,10 +7,8 @@ import com.skamz.shadercam.logic.shaders.util.ShaderAttributes
 class BrightShaderData {
     companion object {
         val shaderMainText: String = """
-        void main() {
-            vec2 uv = vTextureCoord;
-            vec4 color = texture2D(sTexture, vTextureCoord);
-            gl_FragColor = brightness * color;
+        vec3 mainImage(vec2 uv, vec3 color) {
+          return brightness * color;
         }            
     """.trimIndent()
 

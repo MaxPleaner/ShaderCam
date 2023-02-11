@@ -42,7 +42,7 @@ class PixelateShaderData {
             return floor((colorize(col) * 6. - colorize(colU) - colorize(colD) - colorize(colR) - colorize(colL)) / 2. * 32.) / 32.;
         }
         
-        vec3 mainImage(vec2 uv, vec3 color) {
+        vec3 image(vec2 uv, vec3 color) {
             return getCol(uv);
         }                
     """.trimIndent()

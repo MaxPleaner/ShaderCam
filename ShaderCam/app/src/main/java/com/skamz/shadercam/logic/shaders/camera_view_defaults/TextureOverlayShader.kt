@@ -5,7 +5,7 @@ import com.skamz.shadercam.logic.shaders.util.*
 class TextureOverlayShaderData {
     companion object {
         val shaderMainText: String = """
-        vec3 mainImage(vec2 uv, vec3 color) {
+        vec3 image(vec2 uv, vec3 color) {
             vec3 overlay = texture2D(overlayTexture, uv).rgb;
             return color - (overlay * amt);
         }    

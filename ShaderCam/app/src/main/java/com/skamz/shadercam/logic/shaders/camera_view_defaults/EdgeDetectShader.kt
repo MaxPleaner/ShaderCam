@@ -27,7 +27,7 @@ class EdgeDetectShaderData {
         	n[8] = sampleCamera(coord + vec2(  w, h));
         }
 
-        vec3 mainImage(vec2 uv, vec3 color)
+        vec3 image(vec2 uv, vec3 color)
         {
             vec4 n[9];
         	make_kernel( n, uv );

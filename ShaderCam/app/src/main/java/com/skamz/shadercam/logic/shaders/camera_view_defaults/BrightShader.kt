@@ -7,7 +7,7 @@ import com.skamz.shadercam.logic.shaders.util.ShaderAttributes
 class BrightShaderData {
     companion object {
         val shaderMainText: String = """
-        vec3 mainImage(vec2 uv, vec3 color) {
+        vec3 image(vec2 uv, vec3 color) {
           return brightness * color;
         }            
     """.trimIndent()

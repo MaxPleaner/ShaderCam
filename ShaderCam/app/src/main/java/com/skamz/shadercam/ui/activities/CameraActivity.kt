@@ -2,8 +2,8 @@ package com.skamz.shadercam.ui.activities
 
 import android.content.Intent
 import android.content.res.ColorStateList
-import android.graphics.Color
-import android.graphics.SurfaceTexture
+import android.graphics.*
+import android.media.Image
 import android.net.Uri
 import android.opengl.GLES20.*
 import android.os.Build
@@ -25,6 +25,9 @@ import com.otaliastudios.cameraview.CameraView
 import com.otaliastudios.cameraview.PictureResult
 import com.otaliastudios.cameraview.VideoResult
 import com.otaliastudios.cameraview.controls.Mode
+import com.otaliastudios.cameraview.frame.Frame
+import com.otaliastudios.cameraview.frame.FrameProcessor
+import com.otaliastudios.cameraview.size.Size
 import com.otaliastudios.opengl.core.EglCore
 import com.otaliastudios.opengl.program.GlShader
 import com.otaliastudios.opengl.surface.EglWindowSurface
@@ -40,12 +43,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.*
+import java.nio.ByteBuffer
 import java.util.*
 
 
 //test
 class CameraActivity : AppCompatActivity() {
-    private lateinit var camera: CameraView
+    lateinit var camera: CameraView
     private var mode:Mode = Mode.PICTURE
     private var showParams: Boolean = true
 
@@ -150,9 +154,6 @@ class CameraActivity : AppCompatActivity() {
             uiContainer.visibility = if (showParams) View.VISIBLE else View.GONE
             val shaderTitle = findViewById<TextView>(R.id.shader_title)
             shaderTitle.visibility = if (showParams) View.VISIBLE else View.GONE
-
-            // DEBUG SHIT. REMOVE.
-            setShader(shaderAttributes)
         }
 
         val switchModeBtn = findViewById<ImageButton>(R.id.switch_photo_video)
@@ -172,8 +173,61 @@ class CameraActivity : AppCompatActivity() {
         camera = findViewById(R.id.camera_view)
         camera.setLifecycleOwner(this)
         camera.addCameraListener(MyCameraListener(this))
-
         setShader(shaderAttributes)
+//        setupFrameProcessor()
+    }
+
+    fun setupFrameProcessor() {
+        camera.addFrameProcessor(object : FrameProcessor {
+            override fun process(frame: Frame) {
+//                val time: Long = frame.getTime()
+                val size: Size = frame.getSize()
+//                val format: Int = frame.getFormat()
+//                val userRotation: Int = frame.getRotationToUser()
+//                val viewRotation: Int = frame.getRotationToView()
+                if (frame.getDataClass() === ByteArray::class.java) {
+                    val out = ByteArrayOutputStream()
+                    val yuvImage = YuvImage(
+                        frame.getData(),
+                        ImageFormat.NV21,
+                        frame.getSize().getWidth(),
+                        frame.getSize().getHeight(),
+                        null
+                    )
+                    yuvImage.compressToJpeg(
+                        Rect(0, 0, frame.getSize().getWidth(), frame.getSize().getHeight()),
+                        90,
+                        out
+                    )
+                    val imageBytes = out.toByteArray()
+                    val bmp = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+//                    Log.e("DEBUG", "is byte arr")
+//                    val bmp = Bitmap.createBitmap(size.width, size.height, Bitmap.Config.ARGB_8888)
+//                    Log.e("DEBUG", " wrapping")
+//                    val buffer = ByteBuffer.wrap(frame.getData())
+//                    Log.e("DEBUG", " copying")
+//                    bmp.copyPixelsFromBuffer(buffer)
+//                    val data: ByteArray = frame.getData()
+//                    val bmp = BitmapFactory.decodeByteArray(data, 0, data.count())
+//                    Log.e("DEBUG", " Setting prev Frame")
+                    GenericShader.prevFrame = bmp
+//                    Log.e("DEBUG", " Null after set? ${bmp == null}")
+
+                } else if (frame.getDataClass() === Image::class.java) {
+                    Log.e("Debug", "its an image")
+                    val data: Image = frame.getData()
+                    val buffer: ByteBuffer = data.planes[0].getBuffer();
+                    val byteArray = ByteArray(buffer.capacity())
+                    buffer.get(byteArray)
+                    val bmp: Bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.count(), null)
+                    GenericShader.prevFrame = bmp
+
+//                    (camera.filter as GenericShader).prevFrame = bmp
+                } else {
+                    Log.e("Debug", "something else entirely.")
+                }
+            }
+        })
     }
 
     class MyCameraListener(parent: CameraActivity) : CameraListener() {

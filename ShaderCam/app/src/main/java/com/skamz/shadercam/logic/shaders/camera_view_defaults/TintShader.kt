@@ -7,7 +7,7 @@ import com.skamz.shadercam.logic.shaders.util.ShaderAttributes
 class TintShaderData {
     companion object {
         val shaderMainText: String = """
-            vec3 mainImage(vec2 uv, vec3 color) {
+            vec3 image(vec2 uv, vec3 color) {
                 return tint * color;
             }
         }

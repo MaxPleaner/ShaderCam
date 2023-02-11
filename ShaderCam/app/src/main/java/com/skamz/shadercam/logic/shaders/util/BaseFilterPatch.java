@@ -1,5 +1,7 @@
 package com.skamz.shadercam.logic.shaders.util;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
@@ -185,6 +187,7 @@ public abstract class BaseFilterPatch implements Filter {
 
     @SuppressWarnings("WeakerAccess")
     protected void onDraw(@SuppressWarnings("unused") long timestampUs) {
+//        Log.e("DEBUG", programDrawable.getClass().toString());
         program.onDraw(programDrawable);
     }
 

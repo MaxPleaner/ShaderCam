@@ -177,32 +177,21 @@ public abstract class BaseFilterPatch implements Filter {
                     "This can happen rarely because of threading.");
         } else {
             GenericShader inst = (GenericShader) this;
-//            if (!inst.getVideoMode()) {}
-//            try {
+            try {
                 onPreDraw(timestampUs, transformMatrix);
-//            }
-//            catch(Exception e) {
-////                inst.setPrevFrame(null);
+            }
+            catch(Exception e) {
 //                inst.setTextureId(null);
-//                Log.e("DEBUG", "EXCEPTION PRE DRAW " + e.getMessage());
-//            }
+            }
             try {
                 onDraw(timestampUs);
             }
             catch(Exception e) {
-                Log.e("DEBUG", "EXCEPTION DRAW " + e.getMessage());
                 if (inst.getVideoMode()) {
                     inst.setTextureId(null);
                 }
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//                    GenericShader.context.setShader(CameraActivity.Companion.getShaderAttributes());
-//                }
-//                inst.setPrevFrame(null);
-
             }
-
             onPostDraw(timestampUs);
-
         }
     }
 
@@ -213,9 +202,6 @@ public abstract class BaseFilterPatch implements Filter {
 
     @SuppressWarnings("WeakerAccess")
     protected void onDraw(@SuppressWarnings("unused") long timestampUs) {
-//        Log.e("DEBUG", programDrawable.getClass().toString());
-//        GenericShader debug = (GenericShader) this;
-//        Log.e("DEBUG", "")
         program.onDraw(programDrawable);
     }
 

@@ -9,7 +9,7 @@ class PixelateShaderData {
         val shaderMainText: String = """   
         vec3 getPos(vec2 uv)
         {
-            return floor(texture2D(sTexture, floor(uv * iResolution.xy / colStepDiff) * colStepDiff / iResolution.xy).rgb * 8.) / 8.;
+            return floor(sampleCamera(floor(uv * iResolution.xy / colStepDiff) * colStepDiff / iResolution.xy).rgb * 8.) / 8.;
         }
         
         vec3 colorize(vec3 col)
@@ -48,7 +48,7 @@ class PixelateShaderData {
     """.trimIndent()
 
         val params: MutableList<ShaderParam> = mutableListOf(
-            FloatShaderParam("colStepDiff", 4.0f, 1.0f, 10.0f)
+            FloatShaderParam("colStepDiff", 4.0f, 1.0f, 40.0f)
         )
     }
 }

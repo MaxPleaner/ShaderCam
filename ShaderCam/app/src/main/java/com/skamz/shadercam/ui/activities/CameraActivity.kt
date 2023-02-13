@@ -8,6 +8,8 @@ import android.net.Uri
 import android.opengl.GLES20.*
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.util.Log.*
 import android.view.LayoutInflater
@@ -60,14 +62,6 @@ class CameraActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "DEBUG"
         var shaderAttributes: ShaderAttributes = GenericShader.shaderAttributes
-//            set(value) {
-//                // Due to BaseFilter (and therefore GenericShader) internally using
-//                // .newInstance() while capturing photo/video, we cannot pass arguments to the
-//                // constructor. So, it is instead configured using the `shaderAttributes` static property.
-//                GenericShader.shaderAttributes = value
-//                shader = GenericShader()
-//                field = value
-//            }
 
         var shader: GenericShader = GenericShader()
 
@@ -173,73 +167,24 @@ class CameraActivity : AppCompatActivity() {
                 switchModeBtn.setImageResource(R.drawable.video_mode_icon)
                 Toast.makeText(applicationContext, "Switched to Picture mode", Toast.LENGTH_SHORT).show()
             }
-            Log.e("DEBUG", "changing mode")
-//            (camera.engine as CameraBaseEngine).restart()
-//            camera.filter = Filters.BLACK_AND_WHITE.newInstance()
             camera.mode = mode
-//            Log.e("DEBUG", "setting shader attrs")
-//            setShader(NoopShader)
-//            setShader(shaderAttributes)
+            // Weird bugs when using feedback and switching front / back cameras.
+            val prevFrameLocation = shader.dataLocations["prevFrame"]
+            if (prevFrameLocation != null && prevFrameLocation > 0) {
+                Handler(Looper.getMainLooper()).postDelayed(
+                    {
+                        shader = shader.copy()
+                        camera.filter = shader
+                    },
+                    1000 // value in milliseconds
+                )
+            }
         }
 
         camera = findViewById(R.id.camera_view)
         camera.setLifecycleOwner(this)
         camera.addCameraListener(MyCameraListener(this))
         setShader(shaderAttributes)
-//        setupFrameProcessor()
-    }
-
-    fun setupFrameProcessor() {
-        camera.addFrameProcessor(object : FrameProcessor {
-            override fun process(frame: Frame) {
-//                val time: Long = frame.getTime()
-                val size: Size = frame.getSize()
-//                val format: Int = frame.getFormat()
-//                val userRotation: Int = frame.getRotationToUser()
-//                val viewRotation: Int = frame.getRotationToView()
-                if (frame.getDataClass() === ByteArray::class.java) {
-                    val out = ByteArrayOutputStream()
-                    val yuvImage = YuvImage(
-                        frame.getData(),
-                        ImageFormat.NV21,
-                        frame.getSize().getWidth(),
-                        frame.getSize().getHeight(),
-                        null
-                    )
-                    yuvImage.compressToJpeg(
-                        Rect(0, 0, frame.getSize().getWidth(), frame.getSize().getHeight()),
-                        90,
-                        out
-                    )
-                    val imageBytes = out.toByteArray()
-                    val bmp = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-//                    Log.e("DEBUG", "is byte arr")
-//                    val bmp = Bitmap.createBitmap(size.width, size.height, Bitmap.Config.ARGB_8888)
-//                    Log.e("DEBUG", " wrapping")
-//                    val buffer = ByteBuffer.wrap(frame.getData())
-//                    Log.e("DEBUG", " copying")
-//                    bmp.copyPixelsFromBuffer(buffer)
-//                    val data: ByteArray = frame.getData()
-//                    val bmp = BitmapFactory.decodeByteArray(data, 0, data.count())
-//                    Log.e("DEBUG", " Setting prev Frame")
-                    (shader as GenericShader).prevFrame = bmp
-//                    Log.e("DEBUG", " Null after set? ${bmp == null}")
-
-                } else if (frame.getDataClass() === Image::class.java) {
-                    Log.e("Debug", "its an image")
-                    val data: Image = frame.getData()
-                    val buffer: ByteBuffer = data.planes[0].getBuffer();
-                    val byteArray = ByteArray(buffer.capacity())
-                    buffer.get(byteArray)
-                    val bmp: Bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.count(), null)
-                    (shader as GenericShader).prevFrame = bmp
-
-//                    (camera.filter as GenericShader).prevFrame = bmp
-                } else {
-                    Log.e("Debug", "something else entirely.")
-                }
-            }
-        })
     }
 
     class MyCameraListener(parent: CameraActivity) : CameraListener() {
@@ -321,8 +266,6 @@ class CameraActivity : AppCompatActivity() {
                         }
                         val scheme = Uri.parse(uriString).scheme ?: "unknown scheme"
                         "${uriString.split("/").last()} (${scheme})"
-//                        uriString
-//                        uriString.split("/").last()
                     }
                     else -> {
                         throw Exception("param type not handled in CameraActivity.updateShaderText")
@@ -363,15 +306,6 @@ class CameraActivity : AppCompatActivity() {
         return shader
     }
 
-//    @RequiresApi(Build.VERSION_CODES.O)
-//    private fun buildShaderOrUseFallback(): GenericShader {
-//        return try {
-//            GenericShader()
-//        } catch (e: Exception) {
-//            handleShaderError(e.message ?: "Unknown shader error")
-//        }
-//    }
-
     @RequiresApi(Build.VERSION_CODES.O)
     fun setShader(shaderAttributes: ShaderAttributes) {
 
@@ -380,11 +314,8 @@ class CameraActivity : AppCompatActivity() {
             runOnUiThread { handleShaderError(errorMessage) }
         }
 
-//        shader = buildShaderOrUseFallback()
         shader = GenericShader()
 
-        // Other errors do not prevent the shader from building,
-        // and so they can be handled here.
         val error = validateShader(shader)
         if (error != null) {
             handleShaderError(error)
@@ -406,7 +337,7 @@ class CameraActivity : AppCompatActivity() {
             val inflater =
                 this.getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
 
-            shader.params.forEach { it ->
+            shader.params.forEach {
                 when (it.paramType) {
                     "float" -> {
                         val inflatedView = inflater.inflate(R.layout.param_slider, null)

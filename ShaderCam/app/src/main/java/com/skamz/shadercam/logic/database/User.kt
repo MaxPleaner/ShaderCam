@@ -37,9 +37,9 @@ class FirebaseUserDao {
                         doc.value
                         buildUserInfoStruct(doc.key!!, doc.value as UsernameHashMap)
                     }
-                    usersData = usersData.filter {
-                        it.name != userInfo.name
-                    }
+//                    usersData = usersData.filter {
+//                        it.name != userInfo.name
+//                    }
                     callback(usersData)
                 }
             }.addOnFailureListener {

@@ -56,6 +56,8 @@ class VideoPreviewActivity : AppCompatActivity() {
         controller.setMediaPlayer(videoView)
         videoView.setMediaController(controller)
 
+        if (videoResult == null) { return }
+
         videoView.setVideoURI(Uri.fromFile(videoResult!!.file))
 
         videoView.setOnPreparedListener { mp ->

@@ -94,16 +94,6 @@ class FirebaseShaderDao {
             removeShaderRef.removeValue()
         }
 
-//        fun getAll(): List<Shader> {
-//            // TODO: Change this to get all users, and make a different function to get a user's shaders.
-//            return listOf()
-//        }
-//
-//        fun findByName(name: String): Shader? {
-//            // TODO: change this to be scoped by user.
-//            return null
-//        }
-
         fun getUserShaders(uid: String, callback: (MutableMap<String, ShaderAttributes>) -> Unit) {
             val shaderRef =
                 db.getReference("userShaders/${uid}/shaders/public")
@@ -124,7 +114,14 @@ class FirebaseShaderDao {
                     db.getReference("userShaders/${currentUser().uid}/shaders/$visibility/${shader.name}")
                 shaderRef.removeValue()
             }
-            // TODO: ensure you can't delete other peoples' shaders!
+
+            // TODO: Remove user if they have no shaders. Can't do this too easily because public and private shaders are all stored in the same dict
+
+//            getUserShaders(currentUser().uid) {
+//                if (it.keys.isEmpty()) {
+//
+//                }
+//            }
         }
     }
 }

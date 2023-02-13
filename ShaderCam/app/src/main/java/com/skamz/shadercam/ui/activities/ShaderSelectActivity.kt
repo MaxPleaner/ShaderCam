@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.auth.FirebaseAuth
 import com.skamz.shadercam.R
 import com.skamz.shadercam.databinding.ActivityShaderSelectBinding
 import com.skamz.shadercam.logic.database.FirebaseShaderDao

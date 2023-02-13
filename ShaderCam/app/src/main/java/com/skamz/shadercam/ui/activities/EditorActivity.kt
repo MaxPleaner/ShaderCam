@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Paint
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -18,6 +19,7 @@ import com.skamz.shadercam.logic.database.Shader
 import com.skamz.shadercam.logic.shaders.util.ShaderAttributes
 import com.skamz.shadercam.logic.shaders.util.ShaderParam
 import com.skamz.shadercam.logic.shaders.util.Shaders
+import com.skamz.shadercam.logic.shaders.util.TextureShaderParam
 import io.github.rosemoe.sora.widget.CodeEditor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -70,7 +72,6 @@ class EditorActivity : AppCompatActivity(){
     }
 
     private fun saveShader(callback: (() -> Unit)? = null) {
-        // TODO: Validate shader and show errors.
         val name = nameInput.text.toString()
         val shaderMainText = shaderTextInput.text.toString()
         val shaderAttributes = ShaderAttributes(name, shaderMainText, parameters, isPublic = isPublic)
@@ -132,7 +133,6 @@ class EditorActivity : AppCompatActivity(){
 
     private fun toggleTextStrikethrough(textView: TextView, strikethrough: Boolean) {
         // This really isn't important. Disabling.
-
 //        if (strikethrough) {
 //            textView.paintFlags = textView.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
 //        } else {
@@ -205,12 +205,34 @@ class EditorActivity : AppCompatActivity(){
         return nameInput.text.toString().matches(Regex("[.#\$\\[\\]]"))
     }
 
+    private fun isPublicShaderWithLocalTexture(): Boolean {
+        if (!isPublic) { return false }
+        val textureParams = parameters.filter { it.paramType == "texture" }
+        val hasLocalTexture = textureParams.any {
+            val uri = Uri.parse((it as TextureShaderParam).default)
+            !listOf("http", "https").contains(uri.scheme)
+        }
+        return hasLocalTexture
+    }
+
     private fun saveButtonOnClick() {
         if (invalidShaderName()) {
             val msg = """
                 Shader names cannot contain the characters . # $ [ ]
             """.trimIndent()
             return Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        }
+        if (isPublicShaderWithLocalTexture()) {
+            AlertDialog.Builder(this)
+                .setTitle("Canot save")
+                .setMessage("""
+                    Public shaders cannot have local texture paths.
+                    Change the texture path to a URL, or make the shader private.
+                """.trimIndent())
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                }
+                .setNegativeButton(android.R.string.cancel, null).show()
         }
         if (isTemplateShader()) {
             val msg = """

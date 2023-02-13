@@ -16,20 +16,19 @@ class EdgeDetectShaderData {
         	float w = 1./iResolution.x;
         	float h = 1./iResolution.y;
 
-        	n[0] = texture2D(sTexture, coord + vec2( -w, -h));
-        	n[1] = texture2D(sTexture, coord + vec2(0.0, -h));
-        	n[2] = texture2D(sTexture, coord + vec2(  w, -h));
-        	n[3] = texture2D(sTexture, coord + vec2( -w, 0.0));
-        	n[4] = texture2D(sTexture, coord);
-        	n[5] = texture2D(sTexture, coord + vec2(  w, 0.0));
-        	n[6] = texture2D(sTexture, coord + vec2( -w, h));
-        	n[7] = texture2D(sTexture, coord + vec2(0.0, h));
-        	n[8] = texture2D(sTexture, coord + vec2(  w, h));
+        	n[0] = sampleCamera(coord + vec2( -w, -h));
+        	n[1] = sampleCamera(coord + vec2(0.0, -h));
+        	n[2] = sampleCamera(coord + vec2(  w, -h));
+        	n[3] = sampleCamera(coord + vec2( -w, 0.0));
+        	n[4] = sampleCamera(coord);
+        	n[5] = sampleCamera(coord + vec2(  w, 0.0));
+        	n[6] = sampleCamera(coord + vec2( -w, h));
+        	n[7] = sampleCamera(coord + vec2(0.0, h));
+        	n[8] = sampleCamera(coord + vec2(  w, h));
         }
 
-        void main()
+        vec3 image(vec2 uv, vec3 color)
         {
-            vec2 uv = vTextureCoord;
             vec4 n[9];
         	make_kernel( n, uv );
 
@@ -37,12 +36,12 @@ class EdgeDetectShaderData {
           	vec4 sobel_edge_v = n[0] + (2.0*n[1]) + n[2] - (n[6] + (2.0*n[7]) + n[8]);
         	vec4 sobel = sqrt((sobel_edge_h * sobel_edge_h) + (sobel_edge_v * sobel_edge_v));
 
-        	vec3 color = 1.0 - sobel.rgb;
+        	vec3 newColor = 1.0 - sobel.rgb;
 
-            color *= contrast;
-            color += vec3(brightness, brightness, brightness);
+            newColor *= contrast;
+            newColor += vec3(brightness, brightness, brightness);
 
-            gl_FragColor = vec4(color, 1.0);
+            return newColor, 1.0);
         }
     """.trimIndent()
 

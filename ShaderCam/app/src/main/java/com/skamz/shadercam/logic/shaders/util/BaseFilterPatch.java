@@ -1,5 +1,8 @@
 package com.skamz.shadercam.logic.shaders.util;
 
+import android.os.Build;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
@@ -12,6 +15,7 @@ import com.otaliastudios.cameraview.size.Size;
 import com.otaliastudios.opengl.draw.GlDrawable;
 import com.otaliastudios.opengl.draw.GlRect;
 import com.otaliastudios.opengl.program.GlTextureProgram;
+import com.skamz.shadercam.ui.activities.CameraActivity;
 
 /**
  * ---------------------------------------------------------------------------
@@ -148,7 +152,9 @@ public abstract class BaseFilterPatch implements Filter {
         // will NOT destroy the GL program. This is important because Filters are not supposed
         // to have ownership of programs. Creation and deletion happen outside, and deleting twice
         // would cause an error.
-        program.release();
+        if (program != null) {
+            program.release();
+        }
         program = null;
         programDrawable = null;
     }
@@ -170,8 +176,21 @@ public abstract class BaseFilterPatch implements Filter {
             LOG.w("Filter.draw() called after destroying the filter. " +
                     "This can happen rarely because of threading.");
         } else {
-            onPreDraw(timestampUs, transformMatrix);
-            onDraw(timestampUs);
+            GenericShader inst = (GenericShader) this;
+            try {
+                onPreDraw(timestampUs, transformMatrix);
+            }
+            catch(Exception e) {
+//                inst.setTextureId(null);
+            }
+            try {
+                onDraw(timestampUs);
+            }
+            catch(Exception e) {
+                if (inst.getVideoMode()) {
+                    inst.setTextureId(null);
+                }
+            }
             onPostDraw(timestampUs);
         }
     }

@@ -1,5 +1,6 @@
 package com.skamz.shadercam.logic.shaders.util;
 
+import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -14,6 +15,7 @@ import com.otaliastudios.cameraview.size.Size;
 import com.otaliastudios.opengl.draw.GlDrawable;
 import com.otaliastudios.opengl.draw.GlRect;
 import com.otaliastudios.opengl.program.GlTextureProgram;
+import com.skamz.shadercam.ui.activities.CameraActivity;
 
 /**
  * ---------------------------------------------------------------------------
@@ -174,9 +176,33 @@ public abstract class BaseFilterPatch implements Filter {
             LOG.w("Filter.draw() called after destroying the filter. " +
                     "This can happen rarely because of threading.");
         } else {
-            onPreDraw(timestampUs, transformMatrix);
-            onDraw(timestampUs);
+            GenericShader inst = (GenericShader) this;
+//            if (!inst.getVideoMode()) {}
+//            try {
+                onPreDraw(timestampUs, transformMatrix);
+//            }
+//            catch(Exception e) {
+////                inst.setPrevFrame(null);
+//                inst.setTextureId(null);
+//                Log.e("DEBUG", "EXCEPTION PRE DRAW " + e.getMessage());
+//            }
+            try {
+                onDraw(timestampUs);
+            }
+            catch(Exception e) {
+                Log.e("DEBUG", "EXCEPTION DRAW " + e.getMessage());
+                if (inst.getVideoMode()) {
+                    inst.setTextureId(null);
+                }
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                    GenericShader.context.setShader(CameraActivity.Companion.getShaderAttributes());
+//                }
+//                inst.setPrevFrame(null);
+
+            }
+
             onPostDraw(timestampUs);
+
         }
     }
 
@@ -188,6 +214,8 @@ public abstract class BaseFilterPatch implements Filter {
     @SuppressWarnings("WeakerAccess")
     protected void onDraw(@SuppressWarnings("unused") long timestampUs) {
 //        Log.e("DEBUG", programDrawable.getClass().toString());
+//        GenericShader debug = (GenericShader) this;
+//        Log.e("DEBUG", "")
         program.onDraw(programDrawable);
     }
 

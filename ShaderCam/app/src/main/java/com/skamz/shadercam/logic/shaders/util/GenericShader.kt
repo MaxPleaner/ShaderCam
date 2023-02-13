@@ -29,13 +29,19 @@ class GenericShader() : BaseFilterPatch() {
 
     var setPrevFrame: Boolean = false
     var textureId: Int? = null
+    var videoMode: Boolean = false
+    var prevFrame: Bitmap? = null
 
     companion object {
         var shaderAttributes: ShaderAttributes = NoopShader
         var programHandle: Int = 0
         lateinit var context: CameraActivity
         var errorCallback: (String) -> Unit = {}
-        var prevFrame: Bitmap? = null
+//        var prevFrame: Bitmap? = null
+    }
+
+    fun camera(): CameraActivity {
+        return context
     }
 
     fun setValue(key: String, value: Any?) {
@@ -116,6 +122,7 @@ class GenericShader() : BaseFilterPatch() {
 
     // This is called internally by CameraView as part of the snapshot process
     override fun copy(): GenericShader {
+        Log.e("DEBUG", "copying")
         val copy = onCopy()
         if (size != null) {
             copy.setSize(size.width, size.height)
@@ -230,19 +237,52 @@ class GenericShader() : BaseFilterPatch() {
         GLES20.glUniform1i(dataLocations["screenRotation"]!!, rotation)
         extractPrevFrameBitmap()
 //        Log.e("DEBUG", "IS IT NULL? ${prevFrame == null}")
-        if (prevFrame != null && !prevFrame!!.isRecycled && !setPrevFrame) {
-            val newTextureId  = TextureUtils.setTextureParam(
-                context,
+//        Log.e("DEBUG", "SETTING PREVIOUS FRAME")
+//        Log.e("DEBUG", "Prev frame null? ${prevFrame == null}")
+        if (prevFrame == null) {
+//            val newTextureId  = TextureUtils.setTextureParam(
+//                context,
+//                "prevFrame",
+//                1,
+////                uri = TextureUtils.resourceIdToUri("R.drawable.noise_texture"),
+////                bitmap = TextureUtils.bi,
+//                uri = Uri.parse("https://www.macmillandictionary.com/external/slideshow/full/White_full.png"),
+//                program = programHandle,
+//                isOES = false,
+//                textureId = textureId
+//            )
+//            textureId = newTextureId
+        } else if (!prevFrame!!.isRecycled && !setPrevFrame) {
+//            if (videoMode) {
+//                val newTextureId  = TextureUtils.setTextureParam(
+//                    context,
+//                    "prevFrame",
+//                    1,
+//    //                uri = TextureUtils.resourceIdToUri("R.drawable.noise_texture"),
+//    //                bitmap = TextureUtils.bi,
+//                    uri = Uri.parse("https://www.macmillandictionary.com/external/slideshow/full/White_full.png"),
+//                    program = programHandle,
+//                    isOES = false,
+//                    textureId = textureId
+//                )
+//                textureId = newTextureId
+////                setPrevFrame = true
+//            } else {
+
+                val newTextureId = TextureUtils.setTextureParam(
+                    context,
                     "prevFrame",
-                1,
-                bitmap = prevFrame,
-                program = programHandle,
-                isOES = false,
-                textureId = textureId
-            )
-            textureId = newTextureId
-            setPrevFrame = true
+                    1,
+                    bitmap = prevFrame,
+                    program = programHandle,
+                    isOES = false,
+                    textureId = textureId
+                )
+                textureId = newTextureId
+//            }
         }
+//            setPrevFrame = true
+//        }
 //        if (prevFrame == null) {
 //            Log.e("DEBUG", "setting prev frame")
 //            TextureUtils.setTextureParam(
@@ -269,15 +309,16 @@ class GenericShader() : BaseFilterPatch() {
 //        }
     }
 
-    class PrevFrameAvailable : BitmapReadyCallbacks {
+    class PrevFrameAvailable(shader: GenericShader) : BitmapReadyCallbacks {
+        val ctx = shader
         override fun onBitmapReady(bitmap: Bitmap?) {
-            prevFrame = bitmap
+            ctx.prevFrame = bitmap
         }
     }
 
     fun extractPrevFrameBitmap() {
         val glSurfaceView = context.camera.findViewById<GLSurfaceView>(com.otaliastudios.cameraview.R.id.gl_surface_view)
-        val callbacks: BitmapReadyCallbacks = PrevFrameAvailable()
+        val callbacks: BitmapReadyCallbacks = PrevFrameAvailable(this)
         captureBitmap(glSurfaceView, callbacks);
     }
 
@@ -307,6 +348,8 @@ class GenericShader() : BaseFilterPatch() {
                     )
                 }
                 "texture" -> {
+//                    if (textureIdx == 1) {
+
                     val param = it as TextureShaderParam
                     TextureUtils.setTextureParam(
                         context,
@@ -315,6 +358,7 @@ class GenericShader() : BaseFilterPatch() {
                         Uri.parse(param.default),
                         program = programHandle
                     )
+//                    }
                     textureIdx += 1;
                 }
                 else -> {

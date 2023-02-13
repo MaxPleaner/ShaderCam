@@ -158,24 +158,31 @@ class TextureUtils {
                 bmp = bitmap
             }
 //            val textureId = loadTexture(context, IntArray(2))
-
-            val textureId = loadTexture(bmp, IntArray(2), textureId=textureId)
-//            Log.e("DEBUG", "textureId: ${textureId}")
+//            GLES31.glActiveTexture(GLES31.GL_TEXTURE0 + channelIdx)
+            var newTextureId: Int = 0
+            if (textureId != null) {
+                loadTexture(bmp, IntArray(2), textureId=textureId)
+                newTextureId = textureId
+            } else {
+                newTextureId = loadTexture(bmp, IntArray(2))
+//            Log.e("DEBUG", "newTextureId: ${newTextureId}")
 //            bmp.recycle() // Recycle the bitmap, since its data has been loaded into OpenGL.
 
-            val sTextureLocation = GLES31.glGetUniformLocation(program, channelName)
+                val sTextureLocation = GLES31.glGetUniformLocation(program, channelName)
 //            Log.e("DEBUG", "sTextureLocation: ${sTextureLocation}")
-            Log.e("DEBUG", "Binding texture $channelName to channel $channelIdx ($sTextureLocation) (${GLES31.GL_TEXTURE0 + channelIdx})")
-            GLES31.glActiveTexture(GLES31.GL_TEXTURE0 + channelIdx)
+                Log.e("DEBUG", "Binding texture $channelName to channel $channelIdx (newTextureId: $newTextureId) (location - $sTextureLocation) (active - ${GLES31.GL_TEXTURE0 + channelIdx})")
+                GLES31.glActiveTexture(GLES31.GL_TEXTURE0 + channelIdx)
 //            if (isOES) {
-//                GLES31.glBindTexture(GLES31.GL_TEXTURE_2D, textureId)
-//                GLES31.glBindTexture(GLES31.GL_SAMPLER_2D, textureId)
-//                GLES31.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId)
+//                GLES31.glBindTexture(GLES31.GL_TEXTURE_2D, newTextureId)
+//                GLES31.glBindTexture(GLES31.GL_SAMPLER_2D, newTextureId)
+//                GLES31.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, newTextureId)
 //            } else {
-                GLES31.glBindTexture(GLES31.GL_TEXTURE_2D, textureId)
+                GLES31.glBindTexture(GLES31.GL_TEXTURE_2D, newTextureId)
 //            }
-            GLES31.glUniform1i(sTextureLocation, channelIdx)
-            return textureId
+                GLES31.glActiveTexture(GLES31.GL_TEXTURE0)
+                GLES31.glUniform1i(sTextureLocation, channelIdx)
+            }
+            return newTextureId!!
         }
 
         /**
@@ -245,10 +252,16 @@ class TextureUtils {
             var finalTextureId = textureId
             if (finalTextureId == null) {
                 finalTextureId = createTexture(GLES31.GL_TEXTURE_2D)
-            }
-
-            if (finalTextureId == 0) {
-                throw GLException(0, "Can't create texture!")
+                if (finalTextureId == 0) {
+                    throw GLException(0, "Can't create texture!")
+                }
+                GLUtils.texImage2D(GLES31.GL_TEXTURE_2D, 0, bitmap, 0)
+            } else {
+//                Log.e("DEBUG", "using existing texture (textureId: $textureId)   " )
+//                GLES31.glActiveTexture(GLES31.GL_TEXTURE0 + 1)
+                GLUtils.texSubImage2D(GLES31.GL_TEXTURE_2D, 0, 0, 0, bitmap)
+//                GLES31.glActiveTexture(GLES31.GL_TEXTURE0)
+//                GLUtils.texImage2D(GLES31.GL_TEXTURE_2D, 0, bitmap, 0)
             }
 
 //            val resourceId = com.skamz.shadercam.R.drawable.noise_texture
@@ -269,9 +282,9 @@ class TextureUtils {
 //                    val bitmap = BitmapFactory.decodeResource(context.resources, resourceId, options)
 
             // Load the bitmap into the bound texture.
-            GLUtils.texImage2D(GLES31.GL_TEXTURE_2D, 0, bitmap, 0)
 
-            bitmap.recycle()
+
+//            bitmap.recycle()
 
             return finalTextureId
         }

@@ -25,6 +25,8 @@ import com.otaliastudios.cameraview.CameraView
 import com.otaliastudios.cameraview.PictureResult
 import com.otaliastudios.cameraview.VideoResult
 import com.otaliastudios.cameraview.controls.Mode
+import com.otaliastudios.cameraview.engine.CameraBaseEngine
+import com.otaliastudios.cameraview.filter.Filters
 import com.otaliastudios.cameraview.frame.Frame
 import com.otaliastudios.cameraview.frame.FrameProcessor
 import com.otaliastudios.cameraview.size.Size
@@ -154,20 +156,30 @@ class CameraActivity : AppCompatActivity() {
             uiContainer.visibility = if (showParams) View.VISIBLE else View.GONE
             val shaderTitle = findViewById<TextView>(R.id.shader_title)
             shaderTitle.visibility = if (showParams) View.VISIBLE else View.GONE
+
+            setShader(shaderAttributes)
         }
 
         val switchModeBtn = findViewById<ImageButton>(R.id.switch_photo_video)
         switchModeBtn.setOnClickListener {
             if (mode == Mode.PICTURE) {
                 mode = Mode.VIDEO
+                shader.videoMode = true
                 switchModeBtn.setImageResource(R.drawable.camera_mode_icon)
                 Toast.makeText(applicationContext, "Switched to Video mode", Toast.LENGTH_SHORT).show()
             } else {
                 mode = Mode.PICTURE
+                shader.videoMode = false
                 switchModeBtn.setImageResource(R.drawable.video_mode_icon)
                 Toast.makeText(applicationContext, "Switched to Picture mode", Toast.LENGTH_SHORT).show()
             }
+            Log.e("DEBUG", "changing mode")
+//            (camera.engine as CameraBaseEngine).restart()
+//            camera.filter = Filters.BLACK_AND_WHITE.newInstance()
             camera.mode = mode
+//            Log.e("DEBUG", "setting shader attrs")
+//            setShader(NoopShader)
+//            setShader(shaderAttributes)
         }
 
         camera = findViewById(R.id.camera_view)
@@ -210,7 +222,7 @@ class CameraActivity : AppCompatActivity() {
 //                    val data: ByteArray = frame.getData()
 //                    val bmp = BitmapFactory.decodeByteArray(data, 0, data.count())
 //                    Log.e("DEBUG", " Setting prev Frame")
-                    GenericShader.prevFrame = bmp
+                    (shader as GenericShader).prevFrame = bmp
 //                    Log.e("DEBUG", " Null after set? ${bmp == null}")
 
                 } else if (frame.getDataClass() === Image::class.java) {
@@ -220,7 +232,7 @@ class CameraActivity : AppCompatActivity() {
                     val byteArray = ByteArray(buffer.capacity())
                     buffer.get(byteArray)
                     val bmp: Bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.count(), null)
-                    GenericShader.prevFrame = bmp
+                    (shader as GenericShader).prevFrame = bmp
 
 //                    (camera.filter as GenericShader).prevFrame = bmp
                 } else {
@@ -361,7 +373,7 @@ class CameraActivity : AppCompatActivity() {
 //    }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun setShader(shaderAttributes: ShaderAttributes) {
+    fun setShader(shaderAttributes: ShaderAttributes) {
 
         GenericShader.shaderAttributes = shaderAttributes
         GenericShader.errorCallback = { errorMessage: String ->
@@ -386,86 +398,95 @@ class CameraActivity : AppCompatActivity() {
         camera.filter = shader
 
         val uiContainer = findViewById<LinearLayout>(R.id.dynamic_ui)
-        uiContainer.removeAllViews()
+        runOnUiThread {
+            uiContainer.removeAllViews()
 
-        updateShaderText()
+            updateShaderText()
 
-        val inflater =
-            this.getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
+            val inflater =
+                this.getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
 
-        shader.params.forEach { it ->
-            when (it.paramType) {
-                "float" -> {
-                    val inflatedView = inflater.inflate(R.layout.param_slider, null)
-                    uiContainer.addView(inflatedView)
+            shader.params.forEach { it ->
+                when (it.paramType) {
+                    "float" -> {
+                        val inflatedView = inflater.inflate(R.layout.param_slider, null)
+                        uiContainer.addView(inflatedView)
 
-                    val slider = inflatedView.findViewById<Slider>(R.id.slider)
-                    val paramTitle = inflatedView.findViewById<TextView>(R.id.param_slider_name)
-                    paramTitle.text = it.paramName
+                        val slider = inflatedView.findViewById<Slider>(R.id.slider)
+                        val paramTitle = inflatedView.findViewById<TextView>(R.id.param_slider_name)
+                        paramTitle.text = it.paramName
 
-                    val shaderParam = it as FloatShaderParam
-                    val shaderValue = (shader.dataValues[shaderParam.paramName] ?: shaderParam.default) as Float
-                    val default01 = fit(shaderValue, shaderParam.min, shaderParam.max, 0.0f, 1.0f)
+                        val shaderParam = it as FloatShaderParam
+                        val shaderValue = (shader.dataValues[shaderParam.paramName]
+                            ?: shaderParam.default) as Float
+                        val default01 =
+                            fit(shaderValue, shaderParam.min, shaderParam.max, 0.0f, 1.0f)
 
-                    slider.value = default01
+                        slider.value = default01
 
-                    slider.addOnChangeListener { _, value, _ ->
-                        val remappedVal = fit(value, 0.0f,1.0f, shaderParam.min, shaderParam.max)
-                        updateShaderParam(it.paramName, remappedVal)
+                        slider.addOnChangeListener { _, value, _ ->
+                            val remappedVal =
+                                fit(value, 0.0f, 1.0f, shaderParam.min, shaderParam.max)
+                            updateShaderParam(it.paramName, remappedVal)
+                        }
                     }
-                }
-                "color" -> {
-                    val inflatedView = inflater.inflate(R.layout.param_color, null)
-                    uiContainer.addView(inflatedView)
-                    val button = inflatedView.findViewById<Button>(R.id.color_param_button)
-                    val paramTitle = inflatedView.findViewById<TextView>(R.id.param_color_name)
-                    paramTitle.text = it.paramName
+                    "color" -> {
+                        val inflatedView = inflater.inflate(R.layout.param_color, null)
+                        uiContainer.addView(inflatedView)
+                        val button = inflatedView.findViewById<Button>(R.id.color_param_button)
+                        val paramTitle = inflatedView.findViewById<TextView>(R.id.param_color_name)
+                        paramTitle.text = it.paramName
 
-                    val shaderParam = it as ColorShaderParam
-                    val colorInt = (shader.dataValues[shaderParam.paramName] ?: shaderParam.default) as Int
-                    ViewCompat.setBackgroundTintList(button, ColorStateList.valueOf(colorInt));
+                        val shaderParam = it as ColorShaderParam
+                        val colorInt =
+                            (shader.dataValues[shaderParam.paramName] ?: shaderParam.default) as Int
+                        ViewCompat.setBackgroundTintList(button, ColorStateList.valueOf(colorInt));
 
-                    button.setOnClickListener { _ ->
-                        CameraColorPickerActivity.startingColor = colorInt
-                        CameraColorPickerActivity.paramName = it.paramName
-                        val intent = Intent(this, CameraColorPickerActivity::class.java)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                        startActivity(intent)
+                        button.setOnClickListener { _ ->
+                            CameraColorPickerActivity.startingColor = colorInt
+                            CameraColorPickerActivity.paramName = it.paramName
+                            val intent = Intent(this, CameraColorPickerActivity::class.java)
+                            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                            startActivity(intent)
+                        }
                     }
-                }
-                "texture" -> {
-                    val shaderParam = it as TextureShaderParam
-                    val inflatedView = inflater.inflate(R.layout.param_texture, null)
-                    uiContainer.addView(inflatedView)
+                    "texture" -> {
+                        val shaderParam = it as TextureShaderParam
+                        val inflatedView = inflater.inflate(R.layout.param_texture, null)
+                        uiContainer.addView(inflatedView)
 
-                    val paramTitle = inflatedView.findViewById<TextView>(R.id.param_texture_name)
-                    paramTitle.text = it.paramName
+                        val paramTitle =
+                            inflatedView.findViewById<TextView>(R.id.param_texture_name)
+                        paramTitle.text = it.paramName
 
-                    val imageView = inflatedView.findViewById<ImageView>(R.id.param_texture_preview)
-                    val imageUriString = (shader.dataValues[shaderParam.paramName] ?: shaderParam.default) as String
+                        val imageView =
+                            inflatedView.findViewById<ImageView>(R.id.param_texture_preview)
+                        val imageUriString = (shader.dataValues[shaderParam.paramName]
+                            ?: shaderParam.default) as String
 
-                    val uri = Uri.parse(imageUriString)
-                    val context = this
-                    when (uri.scheme) {
-                        "http", "https", "hardcodedResource" -> {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                val bmp = TextureUtils.bitmapFromUri(context, uri)
-                                runOnUiThread { imageView.setImageBitmap(bmp) }
+                        val uri = Uri.parse(imageUriString)
+                        val context = this
+                        when (uri.scheme) {
+                            "http", "https", "hardcodedResource" -> {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    val bmp = TextureUtils.bitmapFromUri(context, uri)
+                                    runOnUiThread { imageView.setImageBitmap(bmp) }
+                                }
+                            }
+                            else -> {
+                                // It's likely a Uri from the user's photo gallery,
+                                // which works fine to load from Uri (without parsing bitmap)
+                                imageView.setImageURI(uri)
                             }
                         }
-                        else -> {
-                            // It's likely a Uri from the user's photo gallery,
-                            // which works fine to load from Uri (without parsing bitmap)
-                            imageView.setImageURI(uri)
+
+                        imageView.setOnClickListener {
+                            throw Exception("Unhandled")
                         }
                     }
-
-                    imageView.setOnClickListener {
-                        throw Exception("Unhandled")
+                    else -> {
+                        throw Exception("unknown type")
                     }
-                }
-                else -> {
-                    throw Exception("unknown type")
                 }
             }
 

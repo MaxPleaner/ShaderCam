@@ -9,10 +9,13 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.skamz.shadercam.R
 import com.skamz.shadercam.logic.database.Shader
@@ -35,6 +38,8 @@ class EditorActivity : AppCompatActivity(){
     private lateinit var addParameterBtn: TextView
     private lateinit var parametersListView: ListView
     private var isPublic: Boolean = false
+    private var isFullScreen = false
+    private var normalLayoutParams: ConstraintLayout.LayoutParams? = null
 
     companion object {
         var parameters: MutableList<ShaderParam> = mutableListOf()
@@ -147,6 +152,9 @@ class EditorActivity : AppCompatActivity(){
         val cameraLink = findViewById<Button>(R.id.camera_link)
         val saveButton = findViewById<Button>(R.id.save)
         val deleteButton = findViewById<Button>(R.id.delete)
+        val rootView = findViewById<ConstraintLayout>(R.id.rootView)
+        val nameInputWrapper = findViewById<TextInputLayout>(R.id.name_input_wrapper)
+
 
         addParameterBtn = findViewById(R.id.addParameters)
         shaderTextInput = findViewById(R.id.text_input)
@@ -155,6 +163,8 @@ class EditorActivity : AppCompatActivity(){
         findViewById<ToggleButton>(R.id.public_private_toggle).setOnCheckedChangeListener { buttonView, isChecked ->
             isPublic = isChecked
         }
+
+        setLayoutChange()
 
         addParameterBtn.setOnClickListener {
             val i = Intent(this, ParametersActivity::class.java)
@@ -197,6 +207,30 @@ class EditorActivity : AppCompatActivity(){
 
         deleteButton.setOnClickListener {
             deleteButtonOnClick()
+        }
+    }
+
+    private fun setLayoutChange() {
+
+        val text_input = findViewById<CodeEditor>(R.id.text_input)
+        // Store the normal layout parameters for restoring later
+        normalLayoutParams = text_input.layoutParams as ConstraintLayout.LayoutParams
+
+        // Set click listener for the CodeEditor view
+        text_input.setOnClickListener {
+            if (!isFullScreen) {
+                // Enter fullscreen mode
+                val params = ConstraintLayout.LayoutParams(
+                    ConstraintLayout.LayoutParams.MATCH_PARENT,
+                    ConstraintLayout.LayoutParams.MATCH_PARENT
+                )
+                text_input.layoutParams = params
+                isFullScreen = true
+            } else {
+                // Exit fullscreen mode
+                text_input.layoutParams = normalLayoutParams
+                isFullScreen = false
+            }
         }
     }
 

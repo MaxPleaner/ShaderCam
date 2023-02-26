@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
@@ -226,10 +227,14 @@ class EditorActivity : AppCompatActivity(){
                 )
                 text_input.layoutParams = params
                 isFullScreen = true
+                findViewById<ToggleButton>(R.id.public_private_toggle).visibility = View.GONE
+
             } else {
                 // Exit fullscreen mode
                 text_input.layoutParams = normalLayoutParams
                 isFullScreen = false
+                findViewById<ToggleButton>(R.id.public_private_toggle).visibility = View.VISIBLE
+
             }
         }
     }

@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:id="@+id/rootView"
     android:layout_height="match_parent">
 
 <!--    <ScrollView-->
@@ -74,11 +75,12 @@
         <ToggleButton
             android:id="@+id/public_private_toggle"
             android:layout_width="wrap_content"
-            android:layout_marginLeft="10dp"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@+id/name_input_wrapper"
+            android:layout_marginLeft="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.054"
             app:layout_constraintStart_toEndOf="@id/public_private_label"
-                ></ToggleButton>
+            app:layout_constraintTop_toBottomOf="@+id/name_input_wrapper"></ToggleButton>
 
         <TextView
             android:id="@+id/paramsTitle"

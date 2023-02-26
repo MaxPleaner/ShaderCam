@@ -115,18 +115,18 @@ class CameraActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        findViewById<ImageButton>(R.id.log_in_out).setOnClickListener {
+        findViewById<ImageView>(R.id.log_in_out).setOnClickListener {
             val intent = Intent(this, OnboardingBaseActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
             intent.putExtra("KEEP_VALUES", true)
             startActivity(intent)
         }
 
-        findViewById<ImageButton>(R.id.camera_switch_front_back).setOnClickListener {
+        findViewById<ImageView>(R.id.camera_switch_front_back).setOnClickListener {
             camera.toggleFacing()
         }
 
-        val captureBtn = findViewById<ImageButton>(R.id.camera_capture_btn)
+        val captureBtn = findViewById<ImageView>(R.id.camera_capture_btn)
         captureBtn.setOnClickListener {
             if (mode == Mode.PICTURE) {
                 camera.takePictureSnapshot() // See MyCameraListener for callback
@@ -143,7 +143,7 @@ class CameraActivity : AppCompatActivity() {
             }
         }
 
-        val paramToggleButton = findViewById<ImageButton>(R.id.params_toggle)
+        val paramToggleButton = findViewById<ImageView>(R.id.params_toggle)
         paramToggleButton.setOnClickListener {
             showParams = !showParams
             val uiContainer = findViewById<LinearLayout>(R.id.dynamic_ui)
@@ -154,7 +154,7 @@ class CameraActivity : AppCompatActivity() {
             setShader(shaderAttributes)
         }
 
-        val switchModeBtn = findViewById<ImageButton>(R.id.switch_photo_video)
+        val switchModeBtn = findViewById<ImageView>(R.id.switch_photo_video)
         switchModeBtn.setOnClickListener {
             if (mode == Mode.PICTURE) {
                 mode = Mode.VIDEO
@@ -164,7 +164,7 @@ class CameraActivity : AppCompatActivity() {
             } else {
                 mode = Mode.PICTURE
                 shader.videoMode = false
-                switchModeBtn.setImageResource(R.drawable.video_mode_icon)
+                switchModeBtn.setImageResource(R.drawable.ic_video)
                 Toast.makeText(applicationContext, "Switched to Picture mode", Toast.LENGTH_SHORT).show()
             }
             camera.mode = mode
